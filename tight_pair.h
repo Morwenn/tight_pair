@@ -560,39 +560,48 @@ namespace cruft
             ////////////////////////////////////////////////////////////
             // Construction
 
-            template<std::enable_if_t<
-                check_args::template enable_default<T1, T2>(),
-                bool
-            > = false>
+            tight_pair(tight_pair const&) = default;
+            tight_pair(tight_pair&&) = default;
+
+            template<
+                typename U1 = T1,
+                typename U2 = T2,
+                std::enable_if_t<
+                    check_args::template enable_default<U1, U2>(),
+                    bool
+                > = false
+            >
             constexpr tight_pair():
                 storage()
             {}
 
             template<
-            typename U1 = T1,
-            typename U2 = T2,
-            typename std::enable_if<
-                check_args::template enable_explicit<U1 const&, U2 const&>(),
-                bool
-            >::type = false>
+                typename U1 = T1,
+                typename U2 = T2,
+                std::enable_if_t<
+                    check_args::template enable_explicit<U1 const&, U2 const&>(),
+                    bool
+                > = false
+            >
             constexpr explicit tight_pair(T1 const& first, T2 const& second):
                 storage(first, second)
             {}
 
             template<
-            typename U1 = T1,
-            typename U2 = T2,
-            typename std::enable_if<
-                check_args::template enable_implicit<U1 const&, U2 const&>(),
-                bool
-            >::type = false>
+                typename U1 = T1,
+                typename U2 = T2,
+                std::enable_if_t<
+                    check_args::template enable_implicit<U1 const&, U2 const&>(),
+                    bool
+                > = false
+            >
             constexpr tight_pair(T1 const& first, T2 const& second):
                 storage(first, second)
             {}
 
             template<
-                typename U1,
-                typename U2,
+                typename U1 = T1,
+                typename U2 = T2,
                 std::enable_if_t<
                     check_args::template enable_explicit<U1, U2>(),
                     bool
@@ -603,8 +612,8 @@ namespace cruft
             {}
 
             template<
-                typename U1,
-                typename U2,
+                typename U1 = T1,
+                typename U2 = T2,
                 std::enable_if_t<
                     check_args::template enable_implicit<U1, U2>(),
                     bool
@@ -615,8 +624,8 @@ namespace cruft
             {}
 
             template<
-                typename U1,
-                typename U2,
+                typename U1 = T1,
+                typename U2 = T2,
                 std::enable_if_t<
                     check_args::template enable_explicit<U1 const&, U2 const&>(),
                     bool
@@ -627,8 +636,8 @@ namespace cruft
             {}
 
             template<
-                typename U1,
-                typename U2,
+                typename U1 = T1,
+                typename U2 = T2,
                 std::enable_if_t<
                     check_args::template enable_implicit<U1 const&, U2 const&>(),
                     bool
@@ -639,8 +648,8 @@ namespace cruft
             {}
 
             template<
-                typename U1,
-                typename U2,
+                typename U1 = T1,
+                typename U2 = T2,
                 std::enable_if_t<
                     check_args::template enable_explicit<U1, U2>(),
                     bool
@@ -651,8 +660,8 @@ namespace cruft
             {}
 
             template<
-                typename U1,
-                typename U2,
+                typename U1 = T1,
+                typename U2 = T2,
                 std::enable_if_t<
                     check_args::template enable_implicit<U1, U2>(),
                     bool
