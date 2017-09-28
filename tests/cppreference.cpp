@@ -51,11 +51,11 @@ TEST_CASE( "test from cppreference.com examples" )
         CHECK(get<1>(p4) == 0);
 
         // Piecewise construction
-        /*cruft::tight_pair<std::complex<double>, std::string> p6(
+        cruft::tight_pair<std::complex<double>, std::string> p6(
             std::piecewise_construct,
             std::forward_as_tuple(0.123, 7.7),
             std::forward_as_tuple(10, 'a'));
         CHECK(get<0>(p6) == std::complex<double>(0.123, 7.7));
-        CHECK(get<1>(p6) == "aaaaaaaaaa"s);*/
+        CHECK(get<1>(p6) == "aaaaaaaaaa"s);
     }
 }
