@@ -455,7 +455,7 @@ namespace cruft
 
             template<typename U1, typename U2>
             constexpr tight_pair_storage(U1&& first, U2&& second):
-               elements{std::forward<U1>(first), std::forward<U2>(second)}
+               elements{T(std::forward<U1>(first)), T(std::forward<U2>(second))}
             {}
 
             template<typename... Args1, typename... Args2>
