@@ -191,14 +191,6 @@ namespace cruft
 
                 tight_pair_element& operator=(tight_pair_element const&) = default;
 
-                constexpr auto swap(tight_pair_element& other)
-                    noexcept(std::is_nothrow_swappable<tight_pair_element>::value)
-                    -> void
-                {
-                    using std::swap;
-                    swap(value, other.value);
-                }
-
                 ////////////////////////////////////////////////////////////
                 // Element access
 
@@ -262,14 +254,6 @@ namespace cruft
             {
                 T::operator=(std::forward<U>(other));
                 return *this;
-            }
-
-            inline auto swap(tight_pair_element& other)
-                noexcept(std::is_nothrow_swappable<tight_pair_element>::value)
-                -> void
-            {
-                using std::swap;
-                swap(*this, other);
             }
 
             ////////////////////////////////////////////////////////////
@@ -758,7 +742,18 @@ namespace cruft
                 return *this;
             }*/
 
-            // TODO: the rest
+            ////////////////////////////////////////////////////////////
+            // Swap
+
+            constexpr auto swap(tight_pair& other)
+                noexcept(std::is_nothrow_swappable_v<T1> &&
+                         std::is_nothrow_swappable_v<T2>)
+                -> void
+            {
+                using std::swap;
+                swap(storage.template get<0>(), other.storage.template get<0>());
+                swap(storage.template get<1>(), other.storage.template get<1>());
+            }
 
             ////////////////////////////////////////////////////////////
             // Befriend get<> functions to let them access the storage
@@ -779,6 +774,30 @@ namespace cruft
             friend constexpr auto get(tight_pair<U1, U2> const&&) noexcept
                 -> std::tuple_element_t<N, tight_pair<U1, U2>> const&&;
     };
+
+    ////////////////////////////////////////////////////////////
+    // Deduction guide
+
+    template<typename T1, typename T2>
+    tight_pair(T1, T2)
+        -> tight_pair<T1, T2>;
+
+    ////////////////////////////////////////////////////////////
+    // Free swap function
+
+    template<
+        typename T1,
+        typename T2,
+        typename = std::enable_if_t<
+            std::is_swappable_v<T1> && std::is_swappable_v<T2>
+        >
+    >
+    auto swap(tight_pair<T1, T2>& lhs, tight_pair<T1, T2>& rhs)
+        noexcept(noexcept(lhs.swap(rhs)))
+        -> void
+    {
+        lhs.swap(rhs);
+    }
 
     ////////////////////////////////////////////////////////////
     // get functions for element access and decomposition

@@ -30,10 +30,11 @@
 
 TEST_CASE( "test from cppreference.com examples" )
 {
+    using cruft::get;
+
     SECTION( "constructor" )
     {
         using namespace std::string_literals;
-        using cruft::get;
 
         // Check value initialization
         cruft::tight_pair<int, float> p1;
@@ -57,5 +58,14 @@ TEST_CASE( "test from cppreference.com examples" )
             std::forward_as_tuple(10, 'a'));
         CHECK(get<0>(p6) == std::complex<double>(0.123, 7.7));
         CHECK(get<1>(p6) == "aaaaaaaaaa"s);
+    }
+
+    SECTION( "swap" )
+    {
+        cruft::tight_pair<int, std::string> p1, p2;
+        p1 = cruft::tight_pair(10, "test");
+        p2.swap(p1);
+        CHECK(get<0>(p2) == 10);
+        CHECK(get<1>(p2) == "test");
     }
 }
