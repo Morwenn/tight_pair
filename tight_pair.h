@@ -157,6 +157,9 @@ namespace cruft
                 ////////////////////////////////////////////////////////////
                 // Construction
 
+                tight_pair_element(tight_pair_element const&) = default;
+                tight_pair_element(tight_pair_element&&) = default;
+
                 constexpr tight_pair_element()
                     noexcept(std::is_nothrow_default_constructible<T>::value):
                     value()
@@ -165,9 +168,14 @@ namespace cruft
                                   "attempted to default construct a reference element");
                 }
 
-                template<typename U>
+                template<
+                    typename U,
+                    typename = std::enable_if_t<
+                        std::is_constructible_v<T, U>
+                    >
+                >
                 constexpr explicit tight_pair_element(U&& other)
-                    noexcept(std::is_nothrow_constructible<T, U>::value):
+                    noexcept(std::is_nothrow_constructible_v<T, U>):
                     value(std::forward<U>(other))
                 {}
 
@@ -177,9 +185,6 @@ namespace cruft
                     value(std::make_from_tuple<T>(args))
                 {}
 
-                constexpr tight_pair_element(tight_pair_element const&) = default;
-                constexpr tight_pair_element(tight_pair_element&&) = default;
-
                 template<typename U>
                 constexpr auto operator=(U&& other)
                     noexcept(std::is_nothrow_assignable<T&, U>::value)
@@ -188,8 +193,6 @@ namespace cruft
                     value = std::forward<U>(other);
                     return *this;
                 }
-
-                tight_pair_element& operator=(tight_pair_element const&) = default;
 
                 ////////////////////////////////////////////////////////////
                 // Element access
@@ -223,18 +226,24 @@ namespace cruft
         struct tight_pair_element<N, T, true>:
             private T
         {
-            tight_pair_element& operator=(tight_pair_element const&) = delete;
-
             ////////////////////////////////////////////////////////////
             // Construction
+
+            tight_pair_element(tight_pair_element const&) = default;
+            tight_pair_element(tight_pair_element&&) = default;
 
             constexpr tight_pair_element()
                 noexcept(std::is_nothrow_default_constructible<T>::value)
             {}
 
-            template<typename U>
+            template<
+                typename U,
+                typename = std::enable_if_t<
+                    std::is_constructible_v<T, U>
+                >
+            >
             constexpr explicit tight_pair_element(U&& other)
-                noexcept(std::is_nothrow_constructible<T, U>::value):
+                noexcept(std::is_nothrow_constructible_v<T, U>):
                 T(std::forward<U>(other))
             {}
 
@@ -243,9 +252,6 @@ namespace cruft
                                          std::tuple<Args...> args):
                 T(std::make_from_tuple<T>(args))
             {}
-
-            tight_pair_element(tight_pair_element const&) = default;
-            tight_pair_element(tight_pair_element &&) = default;
 
             template<typename U>
             auto operator=(U&& other)
@@ -296,6 +302,9 @@ namespace cruft
         {
             ////////////////////////////////////////////////////////////
             // Construction
+
+            tight_pair_storage(tight_pair_storage const&) = default;
+            tight_pair_storage(tight_pair_storage&&) = default;
 
             constexpr tight_pair_storage():
                 tight_pair_element<0, T1>(),
@@ -373,6 +382,9 @@ namespace cruft
             ////////////////////////////////////////////////////////////
             // Construction
 
+            tight_pair_storage(tight_pair_storage const&) = default;
+            tight_pair_storage(tight_pair_storage&&) = default;
+
             constexpr tight_pair_storage():
                 tight_pair_element<0, T>(),
                 tight_pair_element<1, T>()
@@ -432,6 +444,9 @@ namespace cruft
 
             ////////////////////////////////////////////////////////////
             // Construction
+
+            tight_pair_storage(tight_pair_storage const&) = default;
+            tight_pair_storage(tight_pair_storage&&) = default;
 
             constexpr tight_pair_storage():
                 elements()
