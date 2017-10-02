@@ -21,10 +21,12 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
+#include <algorithm>
 #include <complex>
 #include <string>
 #include <tuple>
 #include <utility>
+#include <vector>
 #include <catch.hpp>
 #include <tight_pair.h>
 
@@ -67,5 +69,18 @@ TEST_CASE( "test from cppreference.com examples" )
         p2.swap(p1);
         CHECK(get<0>(p2) == 10);
         CHECK(get<1>(p2) == "test");
+    }
+
+    SECTION( "relational operators" )
+    {
+        std::vector<cruft::tight_pair<int, std::string>> v1 = { {2, "baz"},
+                                                                {2, "bar"},
+                                                                {1, "foo"} };
+        std::vector<cruft::tight_pair<int, std::string>> v2 = { {1, "foo"},
+                                                                {2, "bar"},
+                                                                {2, "baz"} };
+        std::sort(v1.begin(), v1.end());
+
+        CHECK(v1 == v2);
     }
 }
