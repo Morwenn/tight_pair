@@ -380,69 +380,6 @@ namespace cruft
         };
 
         template<typename T>
-        struct tight_pair_storage<T, T, true>:
-            // Inherit to compress
-            tight_pair_element<0, T>,
-            tight_pair_element<1, T>
-        {
-            ////////////////////////////////////////////////////////////
-            // Construction
-
-            tight_pair_storage(tight_pair_storage const&) = default;
-            tight_pair_storage(tight_pair_storage&&) = default;
-
-            constexpr tight_pair_storage():
-                tight_pair_element<0, T>(),
-                tight_pair_element<1, T>()
-            {}
-
-            template<typename U1, typename U2>
-            constexpr tight_pair_storage(U1&& first, U2&& second):
-                tight_pair_element<0, T>(std::forward<U1>(first)),
-                tight_pair_element<1, T>(std::forward<U2>(second))
-            {}
-
-            template<typename... Args1, typename... Args2>
-            constexpr tight_pair_storage(std::piecewise_construct_t pc,
-                                         std::tuple<Args1...> first_args,
-                                         std::tuple<Args2...> second_args):
-                tight_pair_element<0, T>(pc, first_args),
-                tight_pair_element<1, T>(pc, second_args)
-            {}
-
-            ////////////////////////////////////////////////////////////
-            // Element access
-
-            template<std::size_t N>
-            constexpr auto get() &
-                -> decltype(auto)
-            {
-                return static_cast<tight_pair_element<N, T>&>(*this).get();
-            }
-
-            template<std::size_t N>
-            constexpr auto get() const&
-                -> decltype(auto)
-            {
-                return static_cast<tight_pair_element<N, T> const&>(*this).get();
-            }
-
-            template<std::size_t N>
-            constexpr auto get() &&
-                -> decltype(auto)
-            {
-                return static_cast<tight_pair_element<N, T>&&>(*this).get();
-            }
-
-            template<std::size_t N>
-            constexpr auto get() const&&
-                -> decltype(auto)
-            {
-                return static_cast<tight_pair_element<N, T> const&&>(*this).get();
-            }
-        };
-
-        template<typename T>
         struct tight_pair_storage<T, T, false>
         {
             // Store elements contiguously, avoid padding between elements
