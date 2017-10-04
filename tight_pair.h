@@ -65,21 +65,27 @@ namespace std
     ////////////////////////////////////////////////////////////
     // Specializations needed for decomposition declarations
 
-    template<typename T, typename U>
-    struct tuple_size<cruft::tight_pair<T, U>>:
+    template<typename T1, typename T2>
+    struct tuple_size<cruft::tight_pair<T1, T2>>:
         std::integral_constant<std::size_t, 2>
     {};
 
-    template<typename T, typename U>
-    struct tuple_element<0, cruft::tight_pair<T, U>>
+    template<typename T1, typename T2>
+    struct tuple_element<0, cruft::tight_pair<T1, T2>>
     {
-        using type = T;
+        using type = T1;
     };
 
-    template<typename T, typename U>
-    struct tuple_element<1, cruft::tight_pair<T, U>>
+    template<typename T1, typename T2>
+    struct tuple_element<1, cruft::tight_pair<T1, T2>>
     {
-        using type = U;
+        using type = T2;
+    };
+
+    template<std::size_t N, typename T1, typename T2>
+    struct tuple_element<N, cruft::tight_pair<T1, T2>>
+    {
+        static_assert(N < 2, "out of bounds index for tuple_element<N, cruft::tight_pair<T1, T2>>");
     };
 }
 
