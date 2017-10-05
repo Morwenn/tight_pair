@@ -301,7 +301,11 @@ namespace cruft
         // template integer parameter is used to disambiguate the
         // types when both have the same underlying types
 
-        template<typename T1, typename T2, bool B=is_ebco_eligible_v<T1>>
+        template<
+            typename T1,
+            typename T2,
+            bool B = is_ebco_eligible_v<T1> || std::is_reference_v<T1>
+        >
         struct tight_pair_storage:
             tight_pair_element<0, T1>,
             tight_pair_element<1, T2>
