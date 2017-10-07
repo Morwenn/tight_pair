@@ -449,12 +449,10 @@ namespace cruft
     // Main class
 
     template<typename T1, typename T2>
-    struct tight_pair
+    struct tight_pair:
+        private detail::tight_pair_storage<T1, T2>
     {
         private:
-
-            // Actual storage of the values
-            detail::tight_pair_storage<T1, T2> storage;
 
             struct check_args
             {
@@ -530,7 +528,7 @@ namespace cruft
                 > = false
             >
             constexpr tight_pair():
-                storage()
+                detail::tight_pair_storage<T1, T2>()
             {}
 
             template<
@@ -542,7 +540,7 @@ namespace cruft
                 > = false
             >
             constexpr explicit tight_pair(T1 const& first, T2 const& second):
-                storage(first, second)
+                detail::tight_pair_storage<T1, T2>(first, second)
             {}
 
             template<
@@ -554,7 +552,7 @@ namespace cruft
                 > = false
             >
             constexpr tight_pair(T1 const& first, T2 const& second):
-                storage(first, second)
+                detail::tight_pair_storage<T1, T2>(first, second)
             {}
 
             template<
@@ -566,7 +564,8 @@ namespace cruft
                 > = false
             >
             constexpr explicit tight_pair(U1&& first, U2&& second):
-                storage(std::forward<U1>(first), std::forward<U2>(second))
+                detail::tight_pair_storage<T1, T2>(std::forward<U1>(first),
+                                                   std::forward<U2>(second))
             {}
 
             template<
@@ -578,7 +577,8 @@ namespace cruft
                 > = false
             >
             constexpr tight_pair(U1&& first, U2&& second):
-                storage(std::forward<U1>(first), std::forward<U2>(second))
+                detail::tight_pair_storage<T1, T2>(std::forward<U1>(first),
+                                                   std::forward<U2>(second))
             {}
 
             template<
@@ -590,7 +590,7 @@ namespace cruft
                 > = false
             >
             constexpr explicit tight_pair(tight_pair<U1, U2> const& pair):
-                storage(get<0>(pair), get<1>(pair))
+                detail::tight_pair_storage<T1, T2>(get<0>(pair), get<1>(pair))
             {}
 
             template<
@@ -602,7 +602,7 @@ namespace cruft
                 > = false
             >
             constexpr tight_pair(tight_pair<U1, U2> const& pair):
-                storage(get<0>(pair), get<1>(pair))
+                detail::tight_pair_storage<T1, T2>(get<0>(pair), get<1>(pair))
             {}
 
             template<
@@ -614,7 +614,8 @@ namespace cruft
                 > = false
             >
             constexpr explicit tight_pair(tight_pair<U1, U2>&& pair):
-                storage(std::forward<U1>(get<0>(pair)), std::forward<U2>(get<1>(pair)))
+                detail::tight_pair_storage<T1, T2>(std::forward<U1>(get<0>(pair)),
+                                                   std::forward<U2>(get<1>(pair)))
             {}
 
             template<
@@ -626,7 +627,8 @@ namespace cruft
                 > = false
             >
             constexpr tight_pair(tight_pair<U1, U2>&& pair):
-                storage(std::forward<U1>(get<0>(pair)), std::forward<U2>(get<1>(pair)))
+                detail::tight_pair_storage<T1, T2>(std::forward<U1>(get<0>(pair)),
+                                                   std::forward<U2>(get<1>(pair)))
             {}
 
             /*template<
@@ -659,7 +661,8 @@ namespace cruft
             constexpr tight_pair(std::piecewise_construct_t pc,
                                  std::tuple<Args1...> first_args,
                                  std::tuple<Args2...> second_args):
-                storage(pc, std::move(first_args), std::move(second_args))
+                detail::tight_pair_storage<T1, T2>(pc, std::move(first_args),
+                                                       std::move(second_args))
             {}
 
             ////////////////////////////////////////////////////////////
@@ -673,8 +676,11 @@ namespace cruft
                                   std::is_nothrow_copy_assignable<T2>::value))
                 -> tight_pair&
             {
-                storage.template get<0>() = pair.storage.template get<0>();
-                storage.template get<1>() = pair.storage.template get<1>();
+                using storage_t = detail::tight_pair_storage<T1, T2>;
+                static_cast<storage_t&>(*this).template get<0>()
+                    = static_cast<storage_t const&>(pair).template get<0>();
+                static_cast<storage_t&>(*this).template get<1>()
+                    = static_cast<storage_t const&>(pair).template get<1>();
                 return *this;
             }
 
@@ -686,8 +692,11 @@ namespace cruft
                                   std::is_nothrow_move_assignable<T2>::value))
                 -> tight_pair&
             {
-                storage.template get<0>() = std::forward<T1>(pair.storage.template get<0>());
-                storage.template get<1>() = std::forward<T2>(pair.storage.template get<1>());
+                using storage_t = detail::tight_pair_storage<T1, T2>;
+                static_cast<storage_t&>(*this).template get<0>()
+                    = std::forward<T1>(static_cast<storage_t&&>(pair).template get<0>());
+                static_cast<storage_t&>(*this).template get<1>()
+                    = std::forward<T2>(static_cast<storage_t&&>(pair).template get<1>());
                 return *this;
             }
 
@@ -712,9 +721,13 @@ namespace cruft
                          std::is_nothrow_swappable_v<T2>)
                 -> void
             {
+                using storage_t = detail::tight_pair_storage<T1, T2>;
+
                 using std::swap;
-                swap(storage.template get<0>(), other.storage.template get<0>());
-                swap(storage.template get<1>(), other.storage.template get<1>());
+                swap(static_cast<storage_t&>(*this).template get<0>(),
+                     static_cast<storage_t&>(other).template get<0>());
+                swap(static_cast<storage_t&>(*this).template get<1>(),
+                     static_cast<storage_t&>(other).template get<1>());
             }
 
             ////////////////////////////////////////////////////////////
@@ -769,8 +782,9 @@ namespace cruft
     constexpr auto get(tight_pair<T1, T2>& pair) noexcept
         -> std::tuple_element_t<N, tight_pair<T1, T2>>&
     {
+        using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>>&>(
-            pair.storage.template get<N>()
+            static_cast<storage_t&>(pair).template get<N>()
         );
     }
 
@@ -778,8 +792,9 @@ namespace cruft
     constexpr auto get(tight_pair<T1, T2> const& pair) noexcept
         -> std::tuple_element_t<N, tight_pair<T1, T2>> const&
     {
+        using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>> const&>(
-            pair.storage.template get<N>()
+            static_cast<storage_t const&>(pair).template get<N>()
         );
     }
 
@@ -787,8 +802,9 @@ namespace cruft
     constexpr auto get(tight_pair<T1, T2>&& pair) noexcept
         -> std::tuple_element_t<N, tight_pair<T1, T2>>&&
     {
+        using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>>&&>(
-            pair.storage.template get<N>()
+            static_cast<storage_t&&>(pair).template get<N>()
         );
     }
 
@@ -796,8 +812,9 @@ namespace cruft
     constexpr auto get(tight_pair<T1, T2> const&& pair) noexcept
         -> std::tuple_element_t<N, tight_pair<T1, T2>> const&&
     {
+        using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>> const&&>(
-            pair.storage.template get<N>()
+            static_cast<const storage_t&&>(pair).template get<N>()
         );
     }
 
