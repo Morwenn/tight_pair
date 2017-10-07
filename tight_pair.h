@@ -203,25 +203,25 @@ namespace cruft
                 ////////////////////////////////////////////////////////////
                 // Element access
 
-                constexpr auto get() & noexcept
+                constexpr auto do_get() & noexcept
                     -> T&
                 {
                     return static_cast<T&>(value);
                 }
 
-                constexpr auto get() const& noexcept
+                constexpr auto do_get() const& noexcept
                     -> T const&
                 {
                     return static_cast<T const&>(value);
                 }
 
-                constexpr auto get() && noexcept
+                constexpr auto do_get() && noexcept
                     -> T&&
                 {
                     return static_cast<T&&>(value);
                 }
 
-                constexpr auto get() const&& noexcept
+                constexpr auto do_get() const&& noexcept
                     -> T const&&
                 {
                     return static_cast<T const&&>(value);
@@ -271,25 +271,25 @@ namespace cruft
             ////////////////////////////////////////////////////////////
             // Element access
 
-            constexpr auto get() & noexcept
+            constexpr auto do_get() & noexcept
                 -> T&
             {
                 return static_cast<T&>(*this);
             }
 
-            constexpr auto get() const& noexcept
+            constexpr auto do_get() const& noexcept
                 -> T const&
             {
                 return static_cast<T const&>(*this);
             }
 
-            constexpr auto get() && noexcept
+            constexpr auto do_get() && noexcept
                 -> T&&
             {
                 return static_cast<T&&>(*this);
             }
 
-            constexpr auto get() const&& noexcept
+            constexpr auto do_get() const&& noexcept
                 -> T const&&
             {
                 return static_cast<T const&&>(*this);
@@ -339,46 +339,46 @@ namespace cruft
             // Element access
 
             template<std::size_t N>
-            constexpr auto get() &
+            constexpr auto do_get() &
                 -> decltype(auto)
             {
                 if constexpr (N == 0) {
-                    return static_cast<tight_pair_element<0, T1>&>(*this).get();
+                    return static_cast<tight_pair_element<0, T1>&>(*this).do_get();
                 } else if constexpr (N == 1) {
-                    return static_cast<tight_pair_element<1, T2>&>(*this).get();
+                    return static_cast<tight_pair_element<1, T2>&>(*this).do_get();
                 }
             }
 
             template<std::size_t N>
-            constexpr auto get() const&
+            constexpr auto do_get() const&
                 -> decltype(auto)
             {
                 if constexpr (N == 0) {
-                    return static_cast<tight_pair_element<0, T1> const&>(*this).get();
+                    return static_cast<tight_pair_element<0, T1> const&>(*this).do_get();
                 } else if constexpr (N == 1) {
-                    return static_cast<tight_pair_element<1, T2> const&>(*this).get();
+                    return static_cast<tight_pair_element<1, T2> const&>(*this).do_get();
                 }
             }
 
             template<std::size_t N>
-            constexpr auto get() &&
+            constexpr auto do_get() &&
                 -> decltype(auto)
             {
                 if constexpr (N == 0) {
-                    return static_cast<tight_pair_element<0, T1>&&>(*this).get();
+                    return static_cast<tight_pair_element<0, T1>&&>(*this).do_get();
                 } else if constexpr (N == 1) {
-                    return static_cast<tight_pair_element<1, T2>&&>(*this).get();
+                    return static_cast<tight_pair_element<1, T2>&&>(*this).do_get();
                 }
             }
 
             template<std::size_t N>
-            constexpr auto get() const&&
+            constexpr auto do_get() const&&
                 -> decltype(auto)
             {
                 if constexpr (N == 0) {
-                    return static_cast<tight_pair_element<0, T1> const&&>(*this).get();
+                    return static_cast<tight_pair_element<0, T1> const&&>(*this).do_get();
                 } else if constexpr (N == 1) {
-                    return static_cast<tight_pair_element<1, T2> const&&>(*this).get();
+                    return static_cast<tight_pair_element<1, T2> const&&>(*this).do_get();
                 }
             }
         };
@@ -416,28 +416,28 @@ namespace cruft
             // Element access
 
             template<std::size_t N>
-            constexpr auto get() &
+            constexpr auto do_get() &
                 -> decltype(auto)
             {
                 return static_cast<T&>(elements[N]);
             }
 
             template<std::size_t N>
-            constexpr auto get() const&
+            constexpr auto do_get() const&
                 -> decltype(auto)
             {
                 return static_cast<T const&>(elements[N]);
             }
 
             template<std::size_t N>
-            constexpr auto get() &&
+            constexpr auto do_get() &&
                 -> decltype(auto)
             {
                 return static_cast<T&&>(elements[N]);
             }
 
             template<std::size_t N>
-            constexpr auto get() const&&
+            constexpr auto do_get() const&&
                 -> decltype(auto)
             {
                 return static_cast<T const&&>(elements[N]);
@@ -676,11 +676,8 @@ namespace cruft
                                   std::is_nothrow_copy_assignable<T2>::value))
                 -> tight_pair&
             {
-                using storage_t = detail::tight_pair_storage<T1, T2>;
-                static_cast<storage_t&>(*this).template get<0>()
-                    = static_cast<storage_t const&>(pair).template get<0>();
-                static_cast<storage_t&>(*this).template get<1>()
-                    = static_cast<storage_t const&>(pair).template get<1>();
+                get<0>(*this) = get<0>(pair);
+                get<1>(*this) = get<1>(pair);
                 return *this;
             }
 
@@ -692,11 +689,8 @@ namespace cruft
                                   std::is_nothrow_move_assignable<T2>::value))
                 -> tight_pair&
             {
-                using storage_t = detail::tight_pair_storage<T1, T2>;
-                static_cast<storage_t&>(*this).template get<0>()
-                    = std::forward<T1>(static_cast<storage_t&&>(pair).template get<0>());
-                static_cast<storage_t&>(*this).template get<1>()
-                    = std::forward<T2>(static_cast<storage_t&&>(pair).template get<1>());
+                get<0>(*this) = std::forward<T1>(get<0>(pair));
+                get<1>(*this) = std::forward<T2>(get<1>(pair));
                 return *this;
             }
 
@@ -724,10 +718,8 @@ namespace cruft
                 using storage_t = detail::tight_pair_storage<T1, T2>;
 
                 using std::swap;
-                swap(static_cast<storage_t&>(*this).template get<0>(),
-                     static_cast<storage_t&>(other).template get<0>());
-                swap(static_cast<storage_t&>(*this).template get<1>(),
-                     static_cast<storage_t&>(other).template get<1>());
+                swap(get<0>(*this), get<0>(other));
+                swap(get<1>(*this), get<1>(other));
             }
 
             ////////////////////////////////////////////////////////////
@@ -784,7 +776,7 @@ namespace cruft
     {
         using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>>&>(
-            static_cast<storage_t&>(pair).template get<N>()
+            static_cast<storage_t&>(pair).template do_get<N>()
         );
     }
 
@@ -794,7 +786,7 @@ namespace cruft
     {
         using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>> const&>(
-            static_cast<storage_t const&>(pair).template get<N>()
+            static_cast<storage_t const&>(pair).template do_get<N>()
         );
     }
 
@@ -804,7 +796,7 @@ namespace cruft
     {
         using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>>&&>(
-            static_cast<storage_t&&>(pair).template get<N>()
+            static_cast<storage_t&&>(pair).template do_get<N>()
         );
     }
 
@@ -814,7 +806,7 @@ namespace cruft
     {
         using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>> const&&>(
-            static_cast<const storage_t&&>(pair).template get<N>()
+            static_cast<const storage_t&&>(pair).template do_get<N>()
         );
     }
 

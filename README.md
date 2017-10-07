@@ -5,7 +5,7 @@ eventually provide the following features:
 - [x] tuple-like access
 - [ ] `get<T>`
 - [ ] construction from tuple-like classes
-- [ ] works with structured bindings
+- [x] works with structured bindings
 - [x] `std::pair`-like *EXPLICIT* constructors
 - [ ] improved comparison operations when possible
 - [ ] `noexcept` guarantees as strong as possible
