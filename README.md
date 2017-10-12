@@ -4,7 +4,7 @@ eventually provide the following features:
 - [x] two elements of the same type are stored as an array
 - [x] tuple-like access
 - [ ] `get<T>`
-- [ ] construction from tuple-like classes
+- [x] construction from standard pair-like classes
 - [x] works with structured bindings
 - [x] `std::pair`-like *EXPLICIT* constructors
 - [ ] improved comparison operations when possible

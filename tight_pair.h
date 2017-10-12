@@ -134,6 +134,8 @@ namespace cruft
             static constexpr bool enable_assign = false;
         };
 
+        // pair_like
+
         template<typename T> struct pair_like: std::false_type {};
         template<typename T> struct pair_like<const T>: pair_like<T> {};
         template<typename T> struct pair_like<volatile T>: pair_like<T> {};
@@ -142,6 +144,56 @@ namespace cruft
         template<typename T1, typename T2> struct pair_like<std::pair<T1, T2>>: std::true_type {};
         template<typename T1, typename T2> struct pair_like<std::tuple<T1, T2>>: std::true_type {};
         template<typename T> struct pair_like<std::array<T, 2>>: std::true_type {};
+
+        // pair_assignable, pair_constructible, pair_convertible
+
+        namespace adl_hook
+        {
+            // Import a template get for ADL
+            using std::get;
+
+            template<typename To, typename From>
+            struct pair_assignable:
+                std::bool_constant<
+                    std::is_assignable_v<
+                        decltype(get<0>(std::declval<To>())),
+                        decltype(get<0>(std::declval<From>()))
+                    > &&
+                    std::is_assignable_v<
+                        decltype(get<1>(std::declval<To>())),
+                        decltype(get<1>(std::declval<From>()))
+                    >
+                >
+            {};
+
+            template<typename To, typename From>
+            struct pair_constructible:
+                std::bool_constant<
+                    std::is_constructible_v<
+                        decltype(get<0>(std::declval<To>())),
+                        decltype(get<0>(std::declval<From>()))
+                    > &&
+                    std::is_constructible_v<
+                        decltype(get<1>(std::declval<To>())),
+                        decltype(get<1>(std::declval<From>()))
+                    >
+                >
+            {};
+
+            template<typename From, typename To>
+            struct pair_convertible:
+                std::bool_constant<
+                    std::is_convertible_v<
+                        decltype(get<0>(std::declval<From>())),
+                        decltype(get<0>(std::declval<To>()))
+                    > &&
+                    std::is_assignable_v<
+                        decltype(get<1>(std::declval<From>())),
+                        decltype(get<1>(std::declval<To>()))
+                    >
+                >
+            {};
+        }
 
         ////////////////////////////////////////////////////////////
         // Type used for the storage of a single pair member: the
@@ -482,34 +534,35 @@ namespace cruft
                 }
             };
 
-            /*struct check_tuple_like_constructor
+            struct check_tuple_like_constructor
             {
                 template<typename Tuple>
                 static constexpr bool enable_implicit()
                 {
-                    return __tuple_convertible<Tuple, tight_pair>::value;
+                    return detail::adl_hook::pair_convertible<Tuple, tight_pair>::value;
                 }
 
                 template<typename Tuple>
                 static constexpr bool enable_explicit()
                 {
-                    return __tuple_constructible<Tuple, tight_pair>::value
-                        && not __tuple_convertible<Tuple, tight_pair>::value;
+                    return detail::adl_hook::pair_constructible<tight_pair&, Tuple>::value
+                        && not detail::adl_hook::pair_convertible<Tuple, tight_pair>::value;
                 }
 
                 template<typename Tuple>
                 static constexpr bool enable_assign()
                 {
-                    return __tuple_assignable<Tuple, tight_pair>::value;
+                    return detail::adl_hook::pair_assignable<tight_pair&, Tuple>::value;
                 }
-            };*/
+            };
 
-            /*template<typename T>
+            template<typename T>
             using check_pair_like = std::conditional_t<
-                detail::pair_like<T>::value && not std::is_same<std::decay_t<T>, tight_pair>::value,
+                detail::pair_like<std::remove_reference_t<T>>::value
+                && not std::is_same_v<std::decay_t<T>, tight_pair>,
                 check_tuple_like_constructor,
                 detail::check_tuple_constructor_fail
-            >;*/
+            >;
 
         public:
 
@@ -631,16 +684,16 @@ namespace cruft
                                                    std::forward<U2>(get<1>(pair)))
             {}
 
-            /*template<
+            template<
                 typename Tuple,
                 std::enable_if_t<
                     check_pair_like<Tuple>::template enable_explicit<Tuple>()
                 >
             >
             constexpr explicit tight_pair(Tuple&& tuple):
-                storage(
-                    std::forward<U1>(get<0>(std::forward<Tuple>(tuple))),
-                    std::forward<U2>(get<1>(std::forward<Tuple>(tuple)))
+                detail::tight_pair_storage<T1, T2>(
+                    std::forward<T1>(get<0>(std::forward<Tuple>(tuple))),
+                    std::forward<T2>(get<1>(std::forward<Tuple>(tuple)))
                 )
             {}
 
@@ -651,11 +704,11 @@ namespace cruft
                 >
             >
             constexpr tight_pair(Tuple&& tuple):
-                storage(
-                    std::forward<U1>(get<0>(std::forward<Tuple>(tuple))),
-                    std::forward<U2>(get<1>(std::forward<Tuple>(tuple)))
+                detail::tight_pair_storage<T1, T2>(
+                    std::forward<T1>(get<0>(std::forward<Tuple>(tuple))),
+                    std::forward<T2>(get<1>(std::forward<Tuple>(tuple)))
                 )
-            {}*/
+            {}
 
             template<typename... Args1, typename... Args2>
             constexpr tight_pair(std::piecewise_construct_t pc,
@@ -694,18 +747,20 @@ namespace cruft
                 return *this;
             }
 
-            /*template<typename Tuple, std::enable_if_t<
-                check_pair_like<Tuple>::template enable_assign<Tuple>()
-             >>
+            template<
+                typename Tuple,
+                typename = std::enable_if_t<
+                    check_pair_like<Tuple>::template enable_assign<Tuple>()
+                >
+            >
             constexpr auto operator=(Tuple&& pair)
                 -> tight_pair&
             {
-                using detail::get;
                 using std::get;
-                first = get<0>(std::forward<Tuple>(pair));
-                second = get<1>(std::forward<Tuple>(pair));
+                get<0>(*this) = get<0>(std::forward<Tuple>(pair));
+                get<1>(*this) = get<1>(std::forward<Tuple>(pair));
                 return *this;
-            }*/
+            }
 
             ////////////////////////////////////////////////////////////
             // Swap
@@ -715,8 +770,6 @@ namespace cruft
                          std::is_nothrow_swappable_v<T2>)
                 -> void
             {
-                using storage_t = detail::tight_pair_storage<T1, T2>;
-
                 using std::swap;
                 swap(get<0>(*this), get<0>(other));
                 swap(get<1>(*this), get<1>(other));
