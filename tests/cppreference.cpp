@@ -23,6 +23,7 @@
  */
 #include <algorithm>
 #include <complex>
+#include <functional>
 #include <string>
 #include <tuple>
 #include <utility>
@@ -69,6 +70,23 @@ TEST_CASE( "test from cppreference.com examples" )
         p2.swap(p1);
         CHECK(get<0>(p2) == 10);
         CHECK(get<1>(p2) == "test");
+    }
+
+    SECTION( "make_pair" )
+    {
+        int n = 1;
+        int a[5] = {1, 2, 3, 4, 5};
+
+        // build a pair from two ints
+        auto p1 = cruft::tight_pair(n, a[1]);
+        CHECK(get<0>(p1) == 1);
+        CHECK(get<1>(p1) == 2);
+
+        // build a pair from a reference to int and an array (decayed to pointer)
+        auto p2 = cruft::tight_pair(std::ref(n), a);
+        n = 7;
+        CHECK(get<0>(p2) == 7);
+        CHECK(*(get<1>(p2) + 2) == 3);
     }
 
     SECTION( "relational operators" )

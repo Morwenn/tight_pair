@@ -30,6 +30,7 @@
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
+#include <functional>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -819,6 +820,18 @@ namespace cruft
     template<typename T1, typename T2>
     tight_pair(T1, T2)
         -> tight_pair<T1, T2>;
+
+    template<typename T1, typename T2>
+    tight_pair(std::reference_wrapper<T1>, T2)
+        -> tight_pair<T1&, T2>;
+
+    template<typename T1, typename T2>
+    tight_pair(T1, std::reference_wrapper<T2>)
+        -> tight_pair<T1, T2&>;
+
+    template<typename T1, typename T2>
+    tight_pair(std::reference_wrapper<T1>, std::reference_wrapper<T2>)
+        -> tight_pair<T1&, T2&>;
 
     ////////////////////////////////////////////////////////////
     // Free swap function
