@@ -330,15 +330,6 @@ namespace cruft
                 T(std::make_from_tuple<T>(args))
             {}
 
-            template<typename U>
-            auto operator=(U&& other)
-                noexcept(std::is_nothrow_assignable<T&, U>::value)
-                -> tight_pair_element&
-            {
-                T::operator=(std::forward<U>(other));
-                return *this;
-            }
-
             ////////////////////////////////////////////////////////////
             // Element access
 
@@ -843,7 +834,7 @@ namespace cruft
             std::is_swappable_v<T1> && std::is_swappable_v<T2>
         >
     >
-    auto swap(tight_pair<T1, T2>& lhs, tight_pair<T1, T2>& rhs)
+    constexpr auto swap(tight_pair<T1, T2>& lhs, tight_pair<T1, T2>& rhs)
         noexcept(noexcept(lhs.swap(rhs)))
         -> void
     {

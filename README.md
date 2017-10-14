@@ -12,7 +12,7 @@ eventually provide the following features:
 - [x] a trivial destructor when possible
 - [x] plays nice with `std::reference_wrapper`
 - [x] piecewise construction with `std::piecewise_construct`
-- [ ] `constexpr` wherever possible
+- [x] `constexpr` ALL the things
 - [x] smart deduction guides to replace `std::make_pair`
 - [ ] includes conversions to and from `std::pair` and `std::tuple`
 
