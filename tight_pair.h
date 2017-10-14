@@ -27,7 +27,6 @@
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
-#include <array>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -134,16 +133,35 @@ namespace cruft
             static constexpr bool enable_assign = false;
         };
 
-        // pair_like
+        // pair_like: std::tuple_size_v<T> == 2 and get<0>/get<1> work
 
-        template<typename T> struct pair_like: std::false_type {};
+        namespace adl_hook
+        {
+            using std::get;
+
+            template<typename T, typename Enable>
+            struct pair_like_impl:
+                std::false_type
+            {};
+
+            template<typename T>
+            struct pair_like_impl<
+                T,
+                std::void_t<
+                    decltype(get<0>(std::declval<T&>())),
+                    decltype(get<1>(std::declval<T&>()))
+                >
+            >:
+                std::bool_constant<std::tuple_size_v<T> == 2>
+            {};
+        }
+
+        template<typename T> struct pair_like:
+            adl_hook::pair_like_impl<T, void>
+        {};
         template<typename T> struct pair_like<const T>: pair_like<T> {};
         template<typename T> struct pair_like<volatile T>: pair_like<T> {};
         template<typename T> struct pair_like<const volatile T>: pair_like<T> {};
-
-        template<typename T1, typename T2> struct pair_like<std::pair<T1, T2>>: std::true_type {};
-        template<typename T1, typename T2> struct pair_like<std::tuple<T1, T2>>: std::true_type {};
-        template<typename T> struct pair_like<std::array<T, 2>>: std::true_type {};
 
         // pair_assignable, pair_constructible, pair_convertible
 
