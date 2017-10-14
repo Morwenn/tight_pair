@@ -838,8 +838,8 @@ namespace cruft
     }
 
     ////////////////////////////////////////////////////////////
-    // get functions for element access and decomposition
-    // declarations
+    // Index-based get functions for element access and
+    // structured bindings
 
     template<std::size_t N, typename T1, typename T2>
     constexpr auto get(tight_pair<T1, T2>& pair) noexcept
@@ -879,6 +879,65 @@ namespace cruft
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>> const&&>(
             static_cast<const storage_t&&>(pair).template do_get<N>()
         );
+    }
+
+    ////////////////////////////////////////////////////////////
+    // Type-based get functions for element access
+
+    template<typename T1, typename T2>
+    constexpr auto get(tight_pair<T1, T2>& pair) noexcept
+        -> T1&
+    {
+        return cruft::get<0>(pair);
+    }
+
+    template<typename T1, typename T2>
+    constexpr auto get(tight_pair<T1, T2> const& pair) noexcept
+        -> T1 const&
+    {
+        return cruft::get<0>(pair);
+    }
+
+    template<typename T1, typename T2>
+    constexpr auto get(tight_pair<T1, T2>&& pair) noexcept
+        -> T1&&
+    {
+        return cruft::get<0>(std::move(pair));
+    }
+
+    template<typename T1, typename T2>
+    constexpr auto get(tight_pair<T1, T2> const&& pair) noexcept
+        -> T1 const&&
+    {
+        return cruft::get<0>(std::move(pair));
+    }
+
+    template<typename T1, typename T2>
+    constexpr auto get(tight_pair<T2, T1>& pair) noexcept
+        -> T1&
+    {
+        return cruft::get<1>(pair);
+    }
+
+    template<typename T1, typename T2>
+    constexpr auto get(tight_pair<T2, T1> const& pair) noexcept
+        -> T1 const&
+    {
+        return cruft::get<1>(pair);
+    }
+
+    template<typename T1, typename T2>
+    constexpr auto get(tight_pair<T2, T1>&& pair) noexcept
+        -> T1&&
+    {
+        return cruft::get<1>(std::move(pair));
+    }
+
+    template<typename T1, typename T2>
+    constexpr auto get(tight_pair<T2, T1> const&& pair) noexcept
+        -> T1 const&&
+    {
+        return cruft::get<1>(std::move(pair));
     }
 
     ////////////////////////////////////////////////////////////
