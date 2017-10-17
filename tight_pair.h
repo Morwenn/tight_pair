@@ -27,6 +27,7 @@
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
+#include <climits>
 #include <cstddef>
 #include <cstdint>
 #include <cstring>
@@ -109,6 +110,102 @@ namespace cruft
         constexpr bool is_ebco_eligible_v = is_ebco_eligible<T>::value;
 
         ////////////////////////////////////////////////////////////
+        // Detect whether an integer has padding bits
+
+        // Partly taken from WG14 N1899, also handles unsigned
+        // integer types such as unsigned __int128 that don't have
+        // an std::numeric_limits specialization
+        template<typename UnsignedInteger>
+        constexpr auto has_padding_bits()
+            -> bool
+        {
+            std::size_t precision = 0;
+            auto num = static_cast<UnsignedInteger>(-1);
+            while (num != 0) {
+                if (num % 2 == 1) {
+                    ++precision;
+                }
+                num >>= 1;
+            }
+            return precision != sizeof(UnsignedInteger) * CHAR_BIT;
+        }
+
+        ////////////////////////////////////////////////////////////
+        // Detect endianness at compile-time, code taken from P0463
+
+        enum class endian
+        {
+#ifdef _WIN32
+            little = 0,
+            big    = 1,
+            native = little
+#else
+            little = __ORDER_LITTLE_ENDIAN__,
+            big    = __ORDER_BIG_ENDIAN__,
+            native = __BYTE_ORDER__
+#endif
+        };
+
+        // TODO: this shouldn't be true, we should just disallow memcpy tricks
+        static_assert(endian::native == endian::little || endian::native == endian::big,
+                      "platforms with exotic endianness are not supported");
+
+        ////////////////////////////////////////////////////////////
+        // Find an unsigned integer type twice as big as the given
+        // one, ensure all bits are used
+
+        template<typename UInt>
+        constexpr auto twice_as_big()
+            -> decltype(auto)
+        {
+            if constexpr (has_padding_bits<UInt>()) {
+                return;
+            }
+
+            if constexpr(sizeof(unsigned short) == 2 * sizeof(UInt) &&
+                         not has_padding_bits<unsigned short>()) {
+                return static_cast<unsigned short>(0);
+            }
+
+            if constexpr(sizeof(unsigned int) == 2 * sizeof(UInt) &&
+                         not has_padding_bits<unsigned int>()) {
+                return static_cast<unsigned int>(0);
+            }
+
+            if constexpr(sizeof(unsigned long) == 2 * sizeof(UInt) &&
+                         not has_padding_bits<unsigned long>()) {
+                return static_cast<unsigned long>(0);
+            }
+
+            if constexpr(sizeof(unsigned long long) == 2 * sizeof(UInt) &&
+                         not has_padding_bits<unsigned long long>()) {
+                return static_cast<unsigned long>(0);
+            }
+
+            if constexpr(sizeof(std::uintmax_t) == 2 * sizeof(UInt) &&
+                         not has_padding_bits<std::uintmax_t>()) {
+                return static_cast<std::uintmax_t>(0);
+            }
+
+#if defined(__clang__) && defined(__SIZEOF_INT128__)
+            // Don't define it for GCC: then current codegen currently
+            // generates branches, which defeats the purpose of our
+            // dedicated optimizations
+            if constexpr(sizeof(unsigned __int128) == 2 * sizeof(UInt) &&
+                         not has_padding_bits<unsigned __int128>()) {
+                return static_cast<unsigned __int128>(0);
+            }
+#endif
+        }
+
+        template<typename T>
+        struct has_twice_as_big:
+            std::negation<std::is_void<
+                decltype(twice_as_big<T>())
+            >>
+        {};
+
+        ////////////////////////////////////////////////////////////
         // Bits from libc++ <__tuple> header and more
 
         struct nat
@@ -134,7 +231,9 @@ namespace cruft
             static constexpr bool enable_assign = false;
         };
 
-        // pair_like: std::tuple_size_v<T> == 2 and get<0>/get<1> work
+        ////////////////////////////////////////////////////////////
+        // Utilities to work with pair-like types: types for which
+        // std::tuple_size_v<T> == 2 and get<0>/get<1> work
 
         namespace adl_hook
         {
@@ -163,6 +262,12 @@ namespace cruft
         template<typename T> struct pair_like<const T>: pair_like<T> {};
         template<typename T> struct pair_like<volatile T>: pair_like<T> {};
         template<typename T> struct pair_like<const volatile T>: pair_like<T> {};
+
+        // Safeguard to avoid ambiguous conversions
+        template<typename T1, typename T2>
+        struct pair_like<cruft::tight_pair<T1, T2>>:
+            std::false_type
+        {};
 
         // pair_assignable, pair_constructible, pair_convertible
 
@@ -359,6 +464,29 @@ namespace cruft
         };
 
         ////////////////////////////////////////////////////////////
+        // Whether the array elements need to be swapped
+
+        // Additional notes: in the case of little endian architectures
+        // the fields of the array will be reversed so that the array
+        // can be reinterpreted as an integer twice as big when storing
+        // integer data
+
+        template<typename T>
+        struct needs_reordering:
+            std::bool_constant<
+                endian::native == endian::little &&
+                std::conjunction<
+                    std::is_unsigned<T>,
+                    has_twice_as_big<T>
+                >::value
+            >
+        {};
+
+        template<typename T> struct needs_reordering<const T>: needs_reordering<T> {};
+        template<typename T> struct needs_reordering<volatile T>: needs_reordering<T> {};
+        template<typename T> struct needs_reordering<const volatile T>: needs_reordering<T> {};
+
+        ////////////////////////////////////////////////////////////
         // Type used for the storage of the pair member: the
         // template integer parameter is used to disambiguate the
         // types when both have the same underlying types
@@ -366,7 +494,8 @@ namespace cruft
         template<
             typename T1,
             typename T2,
-            bool B = is_ebco_eligible_v<T1> || std::is_reference_v<T1>
+            bool RegularStorage = is_ebco_eligible_v<T1> || std::is_reference_v<T1>,
+            bool NeedsReodering = needs_reordering<T1>::value
         >
         struct tight_pair_storage:
             tight_pair_element<0, T1>,
@@ -446,7 +575,7 @@ namespace cruft
         };
 
         template<typename T>
-        struct tight_pair_storage<T, T, false>
+        struct tight_pair_storage<T, T, false, false>
         {
             // Store elements contiguously, avoid padding between elements
             T elements[2];
@@ -503,6 +632,84 @@ namespace cruft
                 -> decltype(auto)
             {
                 return static_cast<T const&&>(elements[N]);
+            }
+        };
+
+        template<typename T>
+        struct tight_pair_storage<T, T, false, true>
+        {
+            // Store elements contiguously, avoid padding between elements,
+            // reorder for more efficient bit tricks
+            T elements[2];
+
+            ////////////////////////////////////////////////////////////
+            // Construction
+
+            tight_pair_storage(tight_pair_storage const&) = default;
+            tight_pair_storage(tight_pair_storage&&) = default;
+
+            constexpr tight_pair_storage():
+                elements()
+            {}
+
+            template<typename U1, typename U2>
+            constexpr tight_pair_storage(U1&& second, U2&& first):
+               elements{T(std::forward<U2>(first)), T(std::forward<U1>(second))}
+            {}
+
+            template<typename... Args1, typename... Args2>
+            constexpr tight_pair_storage(std::piecewise_construct_t,
+                                         std::tuple<Args1...>&& second_args,
+                                         std::tuple<Args2...>&& first_args):
+                elements{std::make_from_tuple<T>(std::move(first_args)),
+                         std::make_from_tuple<T>(std::move(second_args))}
+            {}
+
+            ////////////////////////////////////////////////////////////
+            // Element access
+
+            template<std::size_t N>
+            constexpr auto do_get() &
+                -> decltype(auto)
+            {
+                if constexpr (N == 0) {
+                    return static_cast<T&>(elements[1]);
+                } else if constexpr (N == 1) {
+                    return static_cast<T&>(elements[0]);
+                }
+            }
+
+            template<std::size_t N>
+            constexpr auto do_get() const&
+                -> decltype(auto)
+            {
+                if constexpr (N == 0) {
+                    return static_cast<T const&>(elements[1]);
+                } else if constexpr (N == 1) {
+                    return static_cast<T const&>(elements[0]);
+                }
+            }
+
+            template<std::size_t N>
+            constexpr auto do_get() &&
+                -> decltype(auto)
+            {
+                if constexpr (N == 0) {
+                    return static_cast<T&&>(elements[1]);
+                } else if constexpr (N == 1) {
+                    return static_cast<T&&>(elements[0]);
+                }
+            }
+
+            template<std::size_t N>
+            constexpr auto do_get() const&&
+                -> decltype(auto)
+            {
+                if constexpr (N == 0) {
+                    return static_cast<T const&&>(elements[1]);
+                } else if constexpr (N == 1) {
+                    return static_cast<T const&&>(elements[0]);
+                }
             }
         };
     }
