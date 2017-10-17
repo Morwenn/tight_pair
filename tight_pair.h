@@ -32,6 +32,7 @@
 #include <cstdint>
 #include <cstring>
 #include <functional>
+#include <memory>
 #include <tuple>
 #include <type_traits>
 #include <utility>
@@ -162,27 +163,27 @@ namespace cruft
                 return;
             }
 
-            if constexpr(sizeof(unsigned short) == 2 * sizeof(UInt) &&
+            else if constexpr(sizeof(unsigned short) == 2 * sizeof(UInt) &&
                          not has_padding_bits<unsigned short>()) {
                 return static_cast<unsigned short>(0);
             }
 
-            if constexpr(sizeof(unsigned int) == 2 * sizeof(UInt) &&
+            else if constexpr(sizeof(unsigned int) == 2 * sizeof(UInt) &&
                          not has_padding_bits<unsigned int>()) {
                 return static_cast<unsigned int>(0);
             }
 
-            if constexpr(sizeof(unsigned long) == 2 * sizeof(UInt) &&
+            else if constexpr(sizeof(unsigned long) == 2 * sizeof(UInt) &&
                          not has_padding_bits<unsigned long>()) {
                 return static_cast<unsigned long>(0);
             }
 
-            if constexpr(sizeof(unsigned long long) == 2 * sizeof(UInt) &&
+            else if constexpr(sizeof(unsigned long long) == 2 * sizeof(UInt) &&
                          not has_padding_bits<unsigned long long>()) {
-                return static_cast<unsigned long>(0);
+                return static_cast<unsigned long long>(0);
             }
 
-            if constexpr(sizeof(std::uintmax_t) == 2 * sizeof(UInt) &&
+            else if constexpr(sizeof(std::uintmax_t) == 2 * sizeof(UInt) &&
                          not has_padding_bits<std::uintmax_t>()) {
                 return static_cast<std::uintmax_t>(0);
             }
@@ -191,7 +192,7 @@ namespace cruft
             // Don't define it for GCC: then current codegen currently
             // generates branches, which defeats the purpose of our
             // dedicated optimizations
-            if constexpr(sizeof(unsigned __int128) == 2 * sizeof(UInt) &&
+            else if constexpr(sizeof(unsigned __int128) == 2 * sizeof(UInt) &&
                          not has_padding_bits<unsigned __int128>()) {
                 return static_cast<unsigned __int128>(0);
             }
@@ -1208,7 +1209,73 @@ namespace cruft
     // Comparison and relational operators optimized to be
     // branchless when possible
 
-    // TODO: pack small integer comparison functions
+    template<typename T>
+    auto operator<(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
+        -> std::enable_if_t<
+            std::conjunction<
+                std::is_unsigned<T>,
+                detail::has_twice_as_big<T>
+            >::value,
+            bool
+        >
+    {
+        using big_t = decltype(detail::twice_as_big<T>());
+        big_t big_lhs, big_rhs;
+        std::memcpy(&big_lhs, &lhs, sizeof(big_t));
+        std::memcpy(&big_rhs, &rhs, sizeof(big_t));
+        return big_lhs < big_rhs;
+    }
+
+    template<typename T>
+    auto operator<=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
+        -> std::enable_if_t<
+            std::conjunction<
+                std::is_unsigned<T>,
+                detail::has_twice_as_big<T>
+            >::value,
+            bool
+        >
+    {
+        using big_t = decltype(detail::twice_as_big<T>());
+        big_t big_lhs, big_rhs;
+        std::memcpy(&big_lhs, &lhs, sizeof(big_t));
+        std::memcpy(&big_rhs, &rhs, sizeof(big_t));
+        return big_lhs <= big_rhs;
+    }
+
+    template<typename T>
+    auto operator>(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
+        -> std::enable_if_t<
+            std::conjunction<
+                std::is_unsigned<T>,
+                detail::has_twice_as_big<T>
+            >::value,
+            bool
+        >
+    {
+        using big_t = decltype(detail::twice_as_big<T>());
+        big_t big_lhs, big_rhs;
+        std::memcpy(&big_lhs, &lhs, sizeof(big_t));
+        std::memcpy(&big_rhs, &rhs, sizeof(big_t));
+        return big_lhs > big_rhs;
+    }
+
+    template<typename T>
+    auto operator>=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
+        -> std::enable_if_t<
+            std::conjunction<
+                std::is_unsigned<T>,
+                detail::has_twice_as_big<T>
+            >::value,
+            bool
+        >
+    {
+        using big_t = decltype(detail::twice_as_big<T>());
+        big_t big_lhs, big_rhs;
+        std::memcpy(&big_lhs, &lhs, sizeof(big_t));
+        std::memcpy(&big_rhs, &rhs, sizeof(big_t));
+        return big_lhs >= big_rhs;
+    }
 }
 
 #endif // CRUFT_TIGHT_PAIR_H_

@@ -7,14 +7,13 @@ eventually provide the following features:
 - [x] construction from pair-like classes (`std::tuple_size_v<T> == 2` and `get<0>`/`get<1>` work)
 - [x] works with structured bindings
 - [x] `std::pair`-like *EXPLICIT* constructors
-- [ ] improved comparison operations when possible
+- [x] improved comparison operations when possible
 - [ ] `noexcept` guarantees as strong as possible
 - [x] a trivial destructor when possible
 - [x] plays nice with `std::reference_wrapper`
 - [x] piecewise construction with `std::piecewise_construct`
-- [x] `constexpr` ALL the things
+- [ ] `constexpr` ALL the things
 - [x] smart deduction guides to replace `std::make_pair`
-- [ ] includes conversions to and from `std::pair` and `std::tuple`
 
 It only provides a reduced C++17 interface, so the following features aren't available:
 - `first` and `second` members
