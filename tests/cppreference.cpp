@@ -101,4 +101,13 @@ TEST_CASE( "test from cppreference.com examples" )
 
         CHECK(v1 == v2);
     }
+
+    SECTION( "get" )
+    {
+        auto p = cruft::tight_pair(1, 3.14);
+        CHECK(cruft::get<0>(p) == 1);
+        CHECK(cruft::get<1>(p) == 3.14);
+        CHECK(cruft::get<int>(p) == 1);
+        CHECK(cruft::get<double>(p) == 3.14);
+    }
 }
