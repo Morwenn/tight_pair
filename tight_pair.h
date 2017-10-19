@@ -146,10 +146,6 @@ namespace cruft
 #endif
         };
 
-        // TODO: this shouldn't be true, we should just disallow memcpy tricks
-        static_assert(endian::native == endian::little || endian::native == endian::big,
-                      "platforms with exotic endianness are not supported");
-
         ////////////////////////////////////////////////////////////
         // Find an unsigned integer type twice as big as the given
         // one, ensure all bits are used
@@ -221,6 +217,15 @@ namespace cruft
             return static_cast<decltype(twice_as_big<T>())>(
                 get<0>(value)) << sizeof(T) * CHAR_BIT | get<1>(value);
         }
+
+        template<typename T>
+        struct can_optimize_compare:
+            std::bool_constant<
+                (endian::native == endian::little || endian::native == endian::big) &&
+                std::is_unsigned_v<T> &&
+                has_twice_as_big<T>::value
+            >
+        {};
 
         ////////////////////////////////////////////////////////////
         // Bits from libc++ <__tuple> header and more
@@ -1331,10 +1336,7 @@ namespace cruft
     template<typename T>
     auto operator<(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
         -> std::enable_if_t<
-            std::conjunction<
-                std::is_unsigned<T>,
-                detail::has_twice_as_big<T>
-            >::value,
+            detail::can_optimize_compare<T>::value,
             bool
         >
     {
@@ -1346,10 +1348,7 @@ namespace cruft
     template<typename T>
     constexpr auto operator<=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
         -> std::enable_if_t<
-            std::conjunction<
-                std::is_unsigned<T>,
-                detail::has_twice_as_big<T>
-            >::value,
+            detail::can_optimize_compare<T>::value,
             bool
         >
     {
@@ -1361,10 +1360,7 @@ namespace cruft
     template<typename T>
     constexpr auto operator>(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
         -> std::enable_if_t<
-            std::conjunction<
-                std::is_unsigned<T>,
-                detail::has_twice_as_big<T>
-            >::value,
+            detail::can_optimize_compare<T>::value,
             bool
         >
     {
@@ -1376,10 +1372,7 @@ namespace cruft
     template<typename T>
     constexpr auto operator>=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
         -> std::enable_if_t<
-            std::conjunction<
-                std::is_unsigned<T>,
-                detail::has_twice_as_big<T>
-            >::value,
+            detail::can_optimize_compare<T>::value,
             bool
         >
     {
@@ -1396,34 +1389,22 @@ namespace cppsort
 
     template<typename T>
     struct is_probably_branchless_comparison<std::less<>, cruft::tight_pair<T, T>>:
-        std::conjunction<
-            std::is_unsigned<T>,
-            cruft::detail::has_twice_as_big<T>
-        >
+        cruft::detail::can_optimize_compare<T>
     {};
 
     template<typename T>
     struct is_probably_branchless_comparison<std::less<T>, cruft::tight_pair<T, T>>:
-        std::conjunction<
-            std::is_unsigned<T>,
-            cruft::detail::has_twice_as_big<T>
-        >
+        cruft::detail::can_optimize_compare<T>
     {};
 
     template<typename T>
     struct is_probably_branchless_comparison<std::greater<>, cruft::tight_pair<T, T>>:
-        std::conjunction<
-            std::is_unsigned<T>,
-            cruft::detail::has_twice_as_big<T>
-        >
+        cruft::detail::can_optimize_compare<T>
     {};
 
     template<typename T>
     struct is_probably_branchless_comparison<std::greater<T>, cruft::tight_pair<T, T>>:
-        std::conjunction<
-            std::is_unsigned<T>,
-            cruft::detail::has_twice_as_big<T>
-        >
+        cruft::detail::can_optimize_compare<T>
     {};
 }
 
