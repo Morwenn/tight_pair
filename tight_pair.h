@@ -1099,9 +1099,8 @@ namespace cruft
                          std::is_nothrow_swappable_v<T2>)
                 -> void
             {
-                using std::swap;
-                swap(get<0>(*this), get<0>(other));
-                swap(get<1>(*this), get<1>(other));
+                std::swap(static_cast<detail::tight_pair_storage<T1, T2>&>(*this),
+                          static_cast<detail::tight_pair_storage<T1, T2>&>(other));
             }
 
             ////////////////////////////////////////////////////////////
