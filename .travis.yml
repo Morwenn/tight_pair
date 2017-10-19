@@ -1,0 +1,39 @@
+language: cpp
+
+sudo: false
+
+compiler:
+  - clang
+  - gcc
+
+env:
+  - BUILD_TYPE=Debug    VALGRIND=true   SANITIZE='' 
+  - BUILD_TYPE=Debug    VALGRIND=false  SANITIZE=undefined 
+#  - BUILD_TYPE=Debug    VALGRIND=false  SANITIZE=address 
+  - BUILD_TYPE=Release  VALGRIND=false  SANITIZE=''
+
+addons:
+  apt:
+    sources:
+      - llvm-toolchain-trusty-5.0
+      - ubuntu-toolchain-r-test
+    packages:
+      - clang-5.0
+      - g++-7
+      - valgrind
+
+install:
+  - if [ "$CXX" = "g++" ]; then export CXX="g++-7"; fi
+  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-5.0"; fi
+
+script: 
+  - cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DSANITIZE="${SANITIZE}" .
+  - make
+  - if [ "${VALGRIND}" = "true" ]; then
+      valgrind --leak-check=full --track-origins=yes --error-exitcode=1 testsuite/tight-pair-testsuite;
+    else
+      testsuite/tight-pair-testsuite;
+    fi
+
+notifications:
+  email: false
