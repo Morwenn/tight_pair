@@ -30,7 +30,6 @@
 #include <climits>
 #include <cstddef>
 #include <cstdint>
-#include <cstring>
 #include <functional>
 #include <memory>
 #include <tuple>
@@ -205,6 +204,23 @@ namespace cruft
                 decltype(twice_as_big<T>())
             >>
         {};
+
+        template<typename T>
+        constexpr auto get_twice_as_big(tight_pair<T, T> const& value) noexcept
+            -> decltype(twice_as_big<T>())
+        {
+            // If the two parts of the tight_pair are unsigned integers
+            // suitably ordered (which depends on the byte order), this
+            // whole function be optimized away as a no-op
+
+            // We use CHAR_BIT instead of std::numeric_limits because the
+            // latter might lack a few specializations for types such as
+            // unsigned __int128 unless some specific constant is defined
+
+            using cruft::get;
+            return static_cast<decltype(twice_as_big<T>())>(
+                get<0>(value)) << sizeof(T) * CHAR_BIT | get<1>(value);
+        }
 
         ////////////////////////////////////////////////////////////
         // Bits from libc++ <__tuple> header and more
@@ -1329,15 +1345,13 @@ namespace cruft
             bool
         >
     {
-        using big_t = decltype(detail::twice_as_big<T>());
-        big_t big_lhs, big_rhs;
-        std::memcpy(&big_lhs, &lhs, sizeof(big_t));
-        std::memcpy(&big_rhs, &rhs, sizeof(big_t));
+        auto big_lhs = detail::get_twice_as_big(lhs);
+        auto big_rhs = detail::get_twice_as_big(rhs);
         return big_lhs < big_rhs;
     }
 
     template<typename T>
-    auto operator<=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
+    constexpr auto operator<=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
         -> std::enable_if_t<
             std::conjunction<
                 std::is_unsigned<T>,
@@ -1346,15 +1360,13 @@ namespace cruft
             bool
         >
     {
-        using big_t = decltype(detail::twice_as_big<T>());
-        big_t big_lhs, big_rhs;
-        std::memcpy(&big_lhs, &lhs, sizeof(big_t));
-        std::memcpy(&big_rhs, &rhs, sizeof(big_t));
+        auto big_lhs = detail::get_twice_as_big(lhs);
+        auto big_rhs = detail::get_twice_as_big(rhs);
         return big_lhs <= big_rhs;
     }
 
     template<typename T>
-    auto operator>(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
+    constexpr auto operator>(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
         -> std::enable_if_t<
             std::conjunction<
                 std::is_unsigned<T>,
@@ -1363,15 +1375,13 @@ namespace cruft
             bool
         >
     {
-        using big_t = decltype(detail::twice_as_big<T>());
-        big_t big_lhs, big_rhs;
-        std::memcpy(&big_lhs, &lhs, sizeof(big_t));
-        std::memcpy(&big_rhs, &rhs, sizeof(big_t));
+        auto big_lhs = detail::get_twice_as_big(lhs);
+        auto big_rhs = detail::get_twice_as_big(rhs);
         return big_lhs > big_rhs;
     }
 
     template<typename T>
-    auto operator>=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
+    constexpr auto operator>=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
         -> std::enable_if_t<
             std::conjunction<
                 std::is_unsigned<T>,
@@ -1380,10 +1390,8 @@ namespace cruft
             bool
         >
     {
-        using big_t = decltype(detail::twice_as_big<T>());
-        big_t big_lhs, big_rhs;
-        std::memcpy(&big_lhs, &lhs, sizeof(big_t));
-        std::memcpy(&big_rhs, &rhs, sizeof(big_t));
+        auto big_lhs = detail::get_twice_as_big(lhs);
+        auto big_rhs = detail::get_twice_as_big(rhs);
         return big_lhs >= big_rhs;
     }
 }
