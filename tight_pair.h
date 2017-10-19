@@ -383,10 +383,9 @@ namespace cruft
                     value(std::forward<U>(other))
                 {}
 
-                template<typename... Args>
-                constexpr tight_pair_element(std::piecewise_construct_t,
-                                             std::tuple<Args...> args):
-                    value(std::make_from_tuple<T>(args))
+                template<typename Tuple>
+                constexpr tight_pair_element(std::piecewise_construct_t, Tuple&& args):
+                    value(std::make_from_tuple<T>(std::forward<Tuple>(args)))
                 {}
 
                 template<typename U>
@@ -463,10 +462,9 @@ namespace cruft
                     value(std::forward<U>(other))
                 {}
 
-                template<typename... Args>
-                constexpr tight_pair_element(std::piecewise_construct_t,
-                                             std::tuple<Args...> args):
-                    value(std::make_from_tuple<T>(args))
+                template<typename Tuple>
+                constexpr tight_pair_element(std::piecewise_construct_t, Tuple&& args):
+                    value(std::make_from_tuple<T>(std::forward<Tuple>(args)))
                 {}
 
                 auto operator=(tight_pair_element const& other)
@@ -545,10 +543,9 @@ namespace cruft
                 T(std::forward<U>(other))
             {}
 
-            template<typename... Args>
-            constexpr tight_pair_element(std::piecewise_construct_t,
-                                         std::tuple<Args...> args):
-                T(std::make_from_tuple<T>(args))
+            template<typename Tuple>
+            constexpr tight_pair_element(std::piecewise_construct_t, Tuple&& args):
+                T(std::make_from_tuple<T>(std::forward<Tuple>(args)))
             {}
 
             tight_pair_element& operator=(tight_pair_element const&) = default;
@@ -637,12 +634,11 @@ namespace cruft
                 tight_pair_element<1, T2>(std::forward<U2>(second))
             {}
 
-            template<typename... Args1, typename... Args2>
+            template<typename Tuple1, typename Tuple2>
             constexpr tight_pair_storage(std::piecewise_construct_t pc,
-                                         std::tuple<Args1...>&& first_args,
-                                         std::tuple<Args2...>&& second_args):
-                tight_pair_element<0, T1>(pc, std::move(first_args)),
-                tight_pair_element<1, T2>(pc, std::move(second_args))
+                                         Tuple1&& first_args, Tuple2&& second_args):
+                tight_pair_element<0, T1>(pc, std::forward<Tuple1>(first_args)),
+                tight_pair_element<1, T2>(pc, std::forward<Tuple2>(second_args))
             {}
 
             tight_pair_storage& operator=(tight_pair_storage const&) = default;
@@ -717,12 +713,11 @@ namespace cruft
                elements{T(std::forward<U1>(first)), T(std::forward<U2>(second))}
             {}
 
-            template<typename... Args1, typename... Args2>
+            template<typename Tuple1, typename Tuple2>
             constexpr tight_pair_storage(std::piecewise_construct_t,
-                                         std::tuple<Args1...>&& first_args,
-                                         std::tuple<Args2...>&& second_args):
-                elements{std::make_from_tuple<T>(std::move(first_args)),
-                         std::make_from_tuple<T>(std::move(second_args))}
+                                         Tuple1&& first_args, Tuple2&& second_args):
+                elements{std::make_from_tuple<T>(std::forward<Tuple1>(first_args)),
+                         std::make_from_tuple<T>(std::forward<Tuple2>(second_args))}
             {}
 
             tight_pair_storage& operator=(tight_pair_storage const&) = default;
@@ -782,12 +777,11 @@ namespace cruft
                elements{T(std::forward<U2>(first)), T(std::forward<U1>(second))}
             {}
 
-            template<typename... Args1, typename... Args2>
+            template<typename Tuple1, typename Tuple2>
             constexpr tight_pair_storage(std::piecewise_construct_t,
-                                         std::tuple<Args1...>&& second_args,
-                                         std::tuple<Args2...>&& first_args):
-                elements{std::make_from_tuple<T>(std::move(first_args)),
-                         std::make_from_tuple<T>(std::move(second_args))}
+                                         Tuple2&& second_args, Tuple1&& first_args):
+                elements{std::make_from_tuple<T>(std::forward<Tuple1>(first_args)),
+                         std::make_from_tuple<T>(std::forward<Tuple2>(second_args))}
             {}
 
             tight_pair_storage& operator=(tight_pair_storage const&) = default;
@@ -1055,12 +1049,11 @@ namespace cruft
                 )
             {}
 
-            template<typename... Args1, typename... Args2>
+            template<typename Tuple1, typename Tuple2>
             constexpr tight_pair(std::piecewise_construct_t pc,
-                                 std::tuple<Args1...> first_args,
-                                 std::tuple<Args2...> second_args):
-                detail::tight_pair_storage<T1, T2>(pc, std::move(first_args),
-                                                       std::move(second_args))
+                                 Tuple1&& first_args, Tuple2&& second_args):
+                detail::tight_pair_storage<T1, T2>(pc, std::forward<Tuple1>(first_args),
+                                                       std::forward<Tuple2>(second_args))
             {}
 
             ////////////////////////////////////////////////////////////
