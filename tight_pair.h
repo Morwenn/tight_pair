@@ -987,7 +987,7 @@ namespace cruft
                 > = false
             >
             constexpr explicit tight_pair(tight_pair<U1, U2> const& pair):
-                detail::tight_pair_storage<T1, T2>(get<0>(pair), get<1>(pair))
+                detail::tight_pair_storage<T1, T2>(pair.template get<0>(), pair.template get<1>())
             {}
 
             template<
@@ -999,7 +999,7 @@ namespace cruft
                 > = false
             >
             constexpr tight_pair(tight_pair<U1, U2> const& pair):
-                detail::tight_pair_storage<T1, T2>(get<0>(pair), get<1>(pair))
+                detail::tight_pair_storage<T1, T2>(pair.template get<0>(), pair.template get<1>())
             {}
 
             template<
@@ -1011,8 +1011,8 @@ namespace cruft
                 > = false
             >
             constexpr explicit tight_pair(tight_pair<U1, U2>&& pair):
-                detail::tight_pair_storage<T1, T2>(std::forward<U1>(get<0>(pair)),
-                                                   std::forward<U2>(get<1>(pair)))
+                detail::tight_pair_storage<T1, T2>(std::forward<U1>(pair.template get<0>()),
+                                                   std::forward<U2>(pair.template get<1>()))
             {}
 
             template<
@@ -1024,8 +1024,8 @@ namespace cruft
                 > = false
             >
             constexpr tight_pair(tight_pair<U1, U2>&& pair):
-                detail::tight_pair_storage<T1, T2>(std::forward<U1>(get<0>(pair)),
-                                                   std::forward<U2>(get<1>(pair)))
+                detail::tight_pair_storage<T1, T2>(std::forward<U1>(pair.template get<0>()),
+                                                   std::forward<U2>(pair.template get<1>()))
             {}
 
             template<
@@ -1118,23 +1118,51 @@ namespace cruft
             }
 
             ////////////////////////////////////////////////////////////
-            // Befriend get<> functions to let them access the storage
+            // Element access
+            //
+            // This function is necessary to avoid structured bindings
+            // picking a potential inaccessible get from an empty base
+            // class
 
-            template<std::size_t N, typename U1, typename U2>
-            friend constexpr auto get(tight_pair<U1, U2>&) noexcept
-                -> std::tuple_element_t<N, tight_pair<U1, U2>>&;
+            template<std::size_t N>
+            constexpr auto get() & noexcept
+                -> std::tuple_element_t<N, tight_pair>&
+            {
+                using storage_t = detail::tight_pair_storage<T1, T2>;
+                return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>>&>(
+                    static_cast<storage_t&>(*this).template do_get<N>()
+                );
+            }
 
-            template<std::size_t N, typename U1, typename U2>
-            friend constexpr auto get(tight_pair<U1, U2> const&) noexcept
-                -> std::tuple_element_t<N, tight_pair<U1, U2>> const&;
+            template<std::size_t N>
+            constexpr auto get() const& noexcept
+                -> std::tuple_element_t<N, tight_pair> const&
+            {
+                using storage_t = detail::tight_pair_storage<T1, T2>;
+                return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>> const&>(
+                    static_cast<storage_t const&>(*this).template do_get<N>()
+                );
+            }
 
-            template<std::size_t N, typename U1, typename U2>
-            friend constexpr auto get(tight_pair<U1, U2>&&) noexcept
-                -> std::tuple_element_t<N, tight_pair<U1, U2>>&&;
+            template<std::size_t N>
+            constexpr auto get() && noexcept
+                -> std::tuple_element_t<N, tight_pair>&&
+            {
+                using storage_t = detail::tight_pair_storage<T1, T2>;
+                return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>>&&>(
+                    static_cast<storage_t&&>(*this).template do_get<N>()
+                );
+            }
 
-            template<std::size_t N, typename U1, typename U2>
-            friend constexpr auto get(tight_pair<U1, U2> const&&) noexcept
-                -> std::tuple_element_t<N, tight_pair<U1, U2>> const&&;
+            template<std::size_t N>
+            constexpr auto get() const&& noexcept
+                -> std::tuple_element_t<N, tight_pair> const&&
+            {
+                using storage_t = detail::tight_pair_storage<T1, T2>;
+                return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>> const&&>(
+                    static_cast<storage_t const&&>(*this).template do_get<N>()
+                );
+            }
     };
 
     ////////////////////////////////////////////////////////////
@@ -1181,9 +1209,8 @@ namespace cruft
     constexpr auto get(tight_pair<T1, T2>& pair) noexcept
         -> std::tuple_element_t<N, tight_pair<T1, T2>>&
     {
-        using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>>&>(
-            static_cast<storage_t&>(pair).template do_get<N>()
+            pair.template get<N>()
         );
     }
 
@@ -1191,9 +1218,8 @@ namespace cruft
     constexpr auto get(tight_pair<T1, T2> const& pair) noexcept
         -> std::tuple_element_t<N, tight_pair<T1, T2>> const&
     {
-        using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>> const&>(
-            static_cast<storage_t const&>(pair).template do_get<N>()
+            pair.template get<N>()
         );
     }
 
@@ -1201,9 +1227,8 @@ namespace cruft
     constexpr auto get(tight_pair<T1, T2>&& pair) noexcept
         -> std::tuple_element_t<N, tight_pair<T1, T2>>&&
     {
-        using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>>&&>(
-            static_cast<storage_t&&>(pair).template do_get<N>()
+            pair.template get<N>()
         );
     }
 
@@ -1211,9 +1236,8 @@ namespace cruft
     constexpr auto get(tight_pair<T1, T2> const&& pair) noexcept
         -> std::tuple_element_t<N, tight_pair<T1, T2>> const&&
     {
-        using storage_t = detail::tight_pair_storage<T1, T2>;
         return static_cast<std::tuple_element_t<N, tight_pair<T1, T2>> const&&>(
-            static_cast<const storage_t&&>(pair).template do_get<N>()
+            pair.template get<N>()
         );
     }
 

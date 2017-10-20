@@ -40,6 +40,15 @@ standard `std::pair`:
   std::cout << sizeof(p1) << ' ' << sizeof(p2);
   ```
 
+- Full EBCO requires to inherit provately from the empty base members in order to pack the pair as much as possible,
+  even when holding instances of other empty pairs. However, this causes a problem with structured bindings: the
+  lookup search for a class-member `get` before looking for a `get` function with ADL. Therefore, is we privately
+  inherit from an empty class with a conforming `get` function, the structured bindings lookup will find it first
+  but will trigger an error because it is inaccessible.
+
+  To bypass this potential bug without losing its compressing abilities, `cruft::tight_pair` has in-class `get`
+  functions equivalent to those that can be found thanks to ADL.
+
 - Unlike `std::pair`, it doesn't have `first` and `second` members nor does ir provide `first_type` or `second_type`
   type aliases. The members can only be accessed through the `get` function template, and the member types can only be
   retrieved through `std::tuple_element`. It was a choice to only provide a minimal tuple-like interface.
