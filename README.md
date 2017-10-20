@@ -60,6 +60,9 @@ standard `std::pair`:
   This notably allows to directly construct a `cruft::tight_pair` from `std::pair<T, U>`, `std::tuple<T, U>` or
   `std::array<T, 2>`, as well as other conforming types from third-party libraries.
 
+- Piecewise construction accepts tuple-like classes instead of just instances of `std::tuple` to pass arguments to
+  initialize the pair members.
+
 - When possible the comparison operators are optimized with bit tricks to be branchless, and hopefully faster than the
   `std::pair` equivalents. They are currently optimized for a subset of the `unsigned` types. Here are some benchmarks
   results I obtained by feeding instances of `std::pair` and `cruft::tight_pair` to comparison sorts from another of my
