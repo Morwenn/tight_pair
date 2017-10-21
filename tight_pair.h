@@ -36,6 +36,20 @@
 #include <type_traits>
 #include <utility>
 
+#ifndef CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT
+#   if defined(__clang__)
+#       define CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT 1
+#   elif defined(__GNUC__)
+#       if __GNUC__ >= 8
+#           define CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT 1
+#       else
+#           define CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT 0
+#       endif
+#   else
+#       define CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT 0
+#   endif
+#endif
+
 namespace cruft
 {
     ////////////////////////////////////////////////////////////
@@ -183,10 +197,10 @@ namespace cruft
                 return static_cast<std::uintmax_t>(0);
             }
 
-#if defined(__clang__) && defined(__SIZEOF_INT128__)
-            // Don't define it for GCC: then current codegen currently
-            // generates branches, which defeats the purpose of our
-            // dedicated optimizations
+#if CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT && defined(__SIZEOF_INT128__)
+            // Only use unsigned __int128 with compilers
+            // which are known to produce branchless code
+            // for comparisons
             else if constexpr(sizeof(unsigned __int128) == 2 * sizeof(UInt) &&
                          not has_padding_bits<unsigned __int128>()) {
                 return static_cast<unsigned __int128>(0);
