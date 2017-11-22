@@ -21,6 +21,8 @@ cruft_times = [algo['cruft'] for algo in algos.values()]
 ind = numpy.arange(len(algos)) + 0.25
 width = 0.3
 
+pyplot.xkcd()
+
 fig, ax = pyplot.subplots()
 bars_std = ax.bar(ind, std_times, width, color='#1f77b4', edgecolor='#1f77b4')
 bars_cruft = ax.bar(ind+width, cruft_times, width, color='#ff7f0e', edgecolor='#ff7f0e')
