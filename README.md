@@ -1,3 +1,4 @@
+[![Build Status](https://travis-ci.org/Morwenn/tight_pair.svg?branch=master)](https://travis-ci.org/Morwenn/tight_pair)
 [![License](http://img.shields.io/:license-mit-blue.svg)](http://doge.mit-license.org)
 
 *This experimental project is a small single-header header-only C++17 library providing a single `tight_pair` class
