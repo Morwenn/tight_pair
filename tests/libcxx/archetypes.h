@@ -26,6 +26,9 @@
 // Headers
 ////////////////////////////////////////////////////////////
 #include <cassert>
+#include <initializer_list>
+#include <type_traits>
+
 
 // Some types dedicated to testing taken from libc++ tests
 
