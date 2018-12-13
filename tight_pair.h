@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Morwenn
+ * Copyright (c) 2017-2018 Morwenn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -292,11 +292,12 @@ namespace cruft
             struct pair_like_impl<
                 T,
                 std::void_t<
+                    typename std::tuple_size<std::decay_t<T>>::type,
                     decltype(get<0>(std::declval<T&>())),
                     decltype(get<1>(std::declval<T&>()))
                 >
             >:
-                std::bool_constant<std::tuple_size_v<T> == 2>
+                std::bool_constant<std::tuple_size_v<std::decay_t<T>> == 2>
             {};
         }
 
@@ -924,8 +925,7 @@ namespace cruft
 
             template<typename T>
             using check_pair_like = std::conditional_t<
-                detail::pair_like<std::remove_reference_t<T>>::value
-                && not std::is_same_v<std::decay_t<T>, tight_pair>,
+                detail::pair_like<std::remove_reference_t<T>>::value,
                 check_tuple_like_constructor,
                 detail::check_tuple_constructor_fail
             >;

@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Morwenn
+ * Copyright (c) 2017-2018 Morwenn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -26,6 +26,8 @@
 // Headers
 ////////////////////////////////////////////////////////////
 #include <cassert>
+#include <initializer_list>
+#include <type_traits>
 
 // Some types dedicated to testing taken from libc++ tests
 
