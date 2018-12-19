@@ -81,25 +81,28 @@ namespace std
 
     template<typename T1, typename T2>
     class tuple_size<cruft::tight_pair<T1, T2>>:
-        std::integral_constant<std::size_t, 2>
+        public std::integral_constant<std::size_t, 2>
     {};
 
     template<typename T1, typename T2>
     class tuple_element<0, cruft::tight_pair<T1, T2>>
     {
-        using type = T1;
+        public:
+            using type = T1;
     };
 
     template<typename T1, typename T2>
     class tuple_element<1, cruft::tight_pair<T1, T2>>
     {
-        using type = T2;
+        public:
+            using type = T2;
     };
 
     template<std::size_t N, typename T1, typename T2>
     class tuple_element<N, cruft::tight_pair<T1, T2>>
     {
-        static_assert(N < 2, "out of bounds index for tuple_element<N, cruft::tight_pair<T1, T2>>");
+        public:
+            static_assert(N < 2, "out of bounds index for tuple_element<N, cruft::tight_pair<T1, T2>>");
     };
 }
 
