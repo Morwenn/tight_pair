@@ -78,9 +78,5 @@ script:
   - cd build
   - travis_wait ctest -C ${BUILD_TYPE} --output-on-failure -j 4
 
-  - cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DSANITIZE="${SANITIZE}" .
-  - make
-  - tests/tight_pair-testsuite
-
 notifications:
   email: false
