@@ -80,7 +80,7 @@ script:
 
   - cmake -DCMAKE_BUILD_TYPE="${BUILD_TYPE}" -DSANITIZE="${SANITIZE}" .
   - make
-  - tests/tight-pair-testsuite
+  - tests/tight_pair-testsuite
 
 notifications:
   email: false
