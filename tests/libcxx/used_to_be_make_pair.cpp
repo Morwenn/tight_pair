@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017 Morwenn
+ * Copyright (c) 2017-2018 Morwenn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -22,10 +22,10 @@
  * THE SOFTWARE.
  */
 #include <memory>
-#include <catch.hpp>
+#include <catch2/catch.hpp>
 #include <tight_pair.h>
 
-TEST_CASE( "using to be make_pair" )
+TEST_CASE( "used to be make_pair" )
 {
     using cruft::get;
     {
