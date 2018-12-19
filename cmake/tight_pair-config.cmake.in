@@ -1,0 +1,5 @@
+@PACKAGE_INIT@
+
+if (NOT TARGET tight_pair::tight_pair)
+    include(${CMAKE_CURRENT_LIST_DIR}/tight_pair-targets.cmake)
+endif()
