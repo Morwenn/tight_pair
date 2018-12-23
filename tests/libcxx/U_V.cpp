@@ -58,6 +58,18 @@ namespace
         constexpr ImplicitT(int x): value(x) {}
         int value;
     };
+
+    struct ExplicitNothrowT
+    {
+        explicit ExplicitNothrowT(int x) noexcept: value(x) {}
+        int value;
+    };
+
+    struct ImplicitNothrowT
+    {
+        ImplicitNothrowT(int x) noexcept: value(x) {}
+        int value;
+    };
 }
 
 TEST_CASE( "test U V" )
@@ -109,5 +121,21 @@ TEST_CASE( "test U V" )
         constexpr cruft::tight_pair<ImplicitT, ImplicitT> p = {42, 43};
         static_assert(get<0>(p).value == 42);
         static_assert(get<1>(p).value == 43);
+    }
+}
+
+TEST_CASE( "test U V noexcept" )
+{
+    { // explicit noexcept test
+        static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitT, ExplicitT>, int, int>);
+        static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitNothrowT, ExplicitT>, int, int>);
+        static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitT, ExplicitNothrowT>, int, int>);
+        static_assert(    std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitNothrowT, ExplicitNothrowT>, int, int>);
+    }
+    { // implicit noexcept test
+        static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitT, ImplicitT>, int, int>);
+        static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitNothrowT, ImplicitT>, int, int>);
+        static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitT, ImplicitNothrowT>, int, int>);
+        static_assert( std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitNothrowT, ImplicitNothrowT>, int, int>);
     }
 }

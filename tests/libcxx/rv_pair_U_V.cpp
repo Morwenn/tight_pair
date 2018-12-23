@@ -84,6 +84,18 @@ namespace
         {}
         int value;
     };
+
+    struct ExplicitNothrowT
+    {
+        explicit ExplicitNothrowT(int x) noexcept: value(x) {}
+        int value;
+    };
+
+    struct ImplicitNothrowT
+    {
+        ImplicitNothrowT(int x) noexcept: value(x) {}
+        int value;
+    };
 }
 
 TEST_CASE( "rv pair U V" )
@@ -196,4 +208,28 @@ TEST_CASE( "rv pair U V" )
         static_assert(get<0>(p2).value == 42);
         static_assert(get<1>(p2).value == 43);
     }
+}
+
+TEST_CASE( "rv pair U V noexcept" )
+{
+     { // explicit noexcept test
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitT, ExplicitT>,
+                                                           cruft::tight_pair<int, int>&&>);
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitNothrowT, ExplicitT>,
+                                                           cruft::tight_pair<int, int>&&>);
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitT, ExplicitNothrowT>,
+                                                           cruft::tight_pair<int, int>&&>);
+         static_assert( std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitNothrowT, ExplicitNothrowT>,
+                                                        cruft::tight_pair<int, int>&&>);
+     }
+     { // implicit noexcept test
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitT, ImplicitT>,
+                                                           cruft::tight_pair<int, int>&&>);
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitNothrowT, ImplicitT>,
+                                                           cruft::tight_pair<int, int>&&>);
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitT, ImplicitNothrowT>,
+                                                           cruft::tight_pair<int, int>&&>);
+         static_assert( std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitNothrowT, ImplicitNothrowT>,
+                                                        cruft::tight_pair<int, int>&&>);
+     }
 }

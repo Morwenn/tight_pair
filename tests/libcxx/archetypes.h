@@ -326,3 +326,29 @@ namespace ExplicitTestTypes
         return lhs.value != rhs.value;
     }
 }
+
+namespace NonThrowingTypes
+{
+    struct DefaultOnly:
+        NullBase
+    {
+        using Base = NullBase;
+        using Base::Base;
+        constexpr DefaultOnly() noexcept = default;
+        DefaultOnly(DefaultOnly const&) noexcept = delete;
+        DefaultOnly& operator=(DefaultOnly const&) noexcept = delete;
+    };
+}
+
+namespace NonTrivialTypes
+{
+    struct DefaultOnly:
+        NullBase
+    {
+        using Base = NullBase;
+        using Base::Base;
+        constexpr DefaultOnly() {};
+        DefaultOnly(DefaultOnly const&) = delete;
+        DefaultOnly& operator=(DefaultOnly const&) = delete;
+    };
+}

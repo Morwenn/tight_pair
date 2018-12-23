@@ -45,6 +45,16 @@ namespace
         int value;
     };
 
+     struct ExplicitNothrowT
+     {
+         explicit ExplicitNothrowT(ExplicitNothrowT const&) noexcept {}
+     };
+
+     struct ImplicitNothrowT
+     {
+         ImplicitNothrowT(ImplicitNothrowT const&) noexcept {}
+     };
+
     template<
         typename T1,
         bool CanCopy = true,
@@ -110,4 +120,28 @@ TEST_CASE( "const first const second" )
         static_assert(get<0>(p).value == 42);
         static_assert(get<1>(p) == 10);
     }
+}
+
+TEST_CASE( "const first const second noexcept" )
+{
+     { // explicit noexcept test
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitT, ExplicitT>,
+                                                           ExplicitT const&, ExplicitT const&>);
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitNothrowT, ExplicitT>,
+                                                           ExplicitNothrowT const&, ExplicitT const&>);
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitT, ExplicitNothrowT>,
+                                                           ExplicitT const&, ExplicitNothrowT const&>);
+         static_assert( std::is_nothrow_constructible_v<cruft::tight_pair<ExplicitNothrowT, ExplicitNothrowT>,
+                                                        ExplicitNothrowT const&, ExplicitNothrowT const&>);
+     }
+     { // implicit noexcept test
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitT, ImplicitT>,
+                                                           ImplicitT const&, ImplicitT const&>);
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitNothrowT, ImplicitT>,
+                                                           ImplicitNothrowT const&, ImplicitT const&>);
+         static_assert(not std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitT, ImplicitNothrowT>,
+                                                           ImplicitT const&, ImplicitNothrowT const&>);
+         static_assert(    std::is_nothrow_constructible_v<cruft::tight_pair<ImplicitNothrowT, ImplicitNothrowT>,
+                                                           ImplicitNothrowT const&, ImplicitNothrowT const&>);
+     }
 }

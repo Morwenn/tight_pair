@@ -24,6 +24,7 @@ set(
     libcxx/const_first_const_second.cpp
     libcxx/const_pair_U_V.cpp
     libcxx/copy_ctor.cpp
+    libcxx/default.cpp
     libcxx/default_ctor.cpp
     libcxx/default-sfinae.cpp
     libcxx/dtor.cpp

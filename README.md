@@ -8,19 +8,19 @@ try to design a C++17-only component, and to optimize it as possible despite the
 `cruft::tight_pair` is a C++17 compressed pair class. Unlike [Boost.Compressed_Pair](http://www.boost.org/doc/libs/1_65_1/libs/utility/doc/html/compressed_pair.html)
 it is modelled after `std::pair`, with only a few additions and a few deletions. First, a short list of what is similar
 to the standard library's `std::pair`, then we will have a look at what makes them different:
-- It supports [the same set of constructors](http://en.cppreference.com/w/cpp/utility/pair/pair), nad most notable the *EXPLICIT* ones
-- It also handles piecewise construction, which allows to build non-copyable, non-movable types
-- It has a tuple-like interface through `std::tuple_size`, `std::tuple_element`, and ADL-found `get`
-- It works with structured bindings
-- Its `get` function also accepts types, unless the pair stores two elements of the same type
-- It is trivially destructible when both elements are trivially destructible
-- It unwraps an `std::reference_wrapper<T>` as a `T&`
-- It supports comparison if its elements support comparison
+- It supports [the same set of constructors](http://en.cppreference.com/w/cpp/utility/pair/pair), and most notably the *EXPLICIT* ones.
+- It also handles piecewise construction, which allows to build non-copyable, non-movable types.
+- It has a tuple-like interface through `std::tuple_size`, `std::tuple_element`, and ADL-found `get`.
+- It works with structured bindings.
+- Its `get` function also accepts types, unless the pair stores two elements of the same type.
+- It is trivially destructible when both elements are trivially destructible.
+- It unwraps an `std::reference_wrapper<T>` as a `T&`.
+- It supports comparison if its elements support comparison.
 
 ## Differences from `std::pair`
 
-Now is the time to look at what actually makes thsi `tight_pair` different from the standard library's `std::pair`:
-- As it names implies, it is what is known as a compressed pair: a pair that privately inherits from the elements to
+Now is the time to look at what actually makes this `tight_pair` different from the standard library's `std::pair`:
+- As its name implies, it is what is known as a *compressed pair*: a pair that privately inherits from the elements to
   take advantage of [empty base class optimization](http://en.cppreference.com/w/cpp/language/ebo) and thus reduce the
   size of the pair. This kind of optimization is mostly used when storing empty function objects.
 
@@ -41,7 +41,7 @@ Now is the time to look at what actually makes thsi `tight_pair` different from 
 
 - Full EBCO requires to inherit privately from the empty base members in order to pack the pair as much as possible,
   even when holding instances of other empty pairs. However, this causes a problem with structured bindings: the
-  lookup search for a class-member `get` before looking for a `get` function with ADL. Therefore, if we privately
+  lookup looks for a class-member `get` before looking for a `get` function with ADL. Therefore, if we privately
   inherit from an empty class with a conforming `get` function, the structured bindings lookup will find it first
   but will trigger an error because it is inaccessible.
 
@@ -82,26 +82,29 @@ Now is the time to look at what actually makes thsi `tight_pair` different from 
   `unsigned int`, but you get the idea. These benchmarks can be found in the `bench` directory of the project, and the
   results have been obtained with MinGW g++ 7.1.0 with the options `-O3 -march=native`.
 
-- Every function is `constexpr` if possible, even `operator=` (it is not the case for `std::pair`).
+- Every function is `constexpr` if possible, even `operator=` (which is not the case for `std::pair`).
+
+- Most of the constructors are conditionally `noexcept` (at the time of writing, only the piecewise constructor and the
+  one that takes a pair-like object are not `noexcept`).
 
 ## Acknowledgements
 
 I can't finish a project without stealing code around, so here are the main sources of the code that can be found in
-this projects when I didn't write it by myself:
+this project when I didn't write it by myself:
 
-* A great deal of code originally comes from the libc++ implementation of `std::pair` and `std::tuple` utilities
+* A great deal of code originally comes from the libc++ implementation of `std::pair` and `std::tuple` utilities.
 
 * All the tests that can be found in `tests/libcxx` have been ported from the libc++ testsuite and modified so that
-  they can work with the minimal tuple-like interface of the library
+  they can work with the minimal tuple-like interface of the library.
 
 * The tests in `tests/cppreference.cpp` were preliminary tests adapted from the examples on [cppreference.com](cppreference.com)
-  to check that the basic features worked correctly
+  to check that the basic features worked correctly.
 
 * The algorithm used to detect whether unsigned integer types have padding bits originally comes from the WG14 paper
-  [N1899 - Integer Precision Bits Update](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1899.pdf) by David Svoboda
+  [N1899 - Integer Precision Bits Update](http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1899.pdf) by David Svoboda.
 
 * The enumeration used to check the integer byte order of scalar types originally comes from the WG21 proposal
-  [P0463R1 - `endian`, Just `endian`](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0463r1.html) by Howard Hinnant
+  [P0463R1 - `endian`, Just `endian`](http://www.open-std.org/jtc1/sc22/wg21/docs/papers/2017/p0463r1.html) by Howard Hinnant.
 
 * I also want to thank the [Godbolt online compiler explorer](https://godbolt.org/) as well as people from Lounge<C++>
   who helped me optimize the small details down to assembly while still striving to remain standard-compliant :)

@@ -949,7 +949,9 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr tight_pair():
+            constexpr tight_pair()
+                noexcept(std::is_nothrow_default_constructible_v<T1> &&
+                         std::is_nothrow_default_constructible_v<T2>):
                 detail::tight_pair_storage<T1, T2>()
             {}
 
@@ -961,7 +963,9 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr explicit tight_pair(T1 const& first, T2 const& second):
+            constexpr explicit tight_pair(T1 const& first, T2 const& second)
+                noexcept(std::is_nothrow_copy_constructible_v<T1> &&
+                         std::is_nothrow_copy_constructible_v<T2>):
                 detail::tight_pair_storage<T1, T2>(first, second)
             {}
 
@@ -973,7 +977,9 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr tight_pair(T1 const& first, T2 const& second):
+            constexpr tight_pair(T1 const& first, T2 const& second)
+                noexcept(std::is_nothrow_copy_constructible_v<T1> &&
+                         std::is_nothrow_copy_constructible_v<T2>):
                 detail::tight_pair_storage<T1, T2>(first, second)
             {}
 
@@ -985,7 +991,9 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr explicit tight_pair(U1&& first, U2&& second):
+            constexpr explicit tight_pair(U1&& first, U2&& second)
+                noexcept(std::is_nothrow_constructible_v<T1, U1> &&
+                         std::is_nothrow_constructible_v<T2, U2>):
                 detail::tight_pair_storage<T1, T2>(std::forward<U1>(first),
                                                    std::forward<U2>(second))
             {}
@@ -998,7 +1006,9 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr tight_pair(U1&& first, U2&& second):
+            constexpr tight_pair(U1&& first, U2&& second)
+                noexcept(std::is_nothrow_constructible_v<T1, U1> &&
+                         std::is_nothrow_constructible_v<T2, U2>):
                 detail::tight_pair_storage<T1, T2>(std::forward<U1>(first),
                                                    std::forward<U2>(second))
             {}
@@ -1011,7 +1021,9 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr explicit tight_pair(tight_pair<U1, U2> const& pair):
+            constexpr explicit tight_pair(tight_pair<U1, U2> const& pair)
+                noexcept(std::is_nothrow_constructible_v<T1, U1 const&> &&
+                         std::is_nothrow_constructible_v<T2, U2 const&>):
                 detail::tight_pair_storage<T1, T2>(pair.template get<0>(), pair.template get<1>())
             {}
 
@@ -1023,7 +1035,9 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr tight_pair(tight_pair<U1, U2> const& pair):
+            constexpr tight_pair(tight_pair<U1, U2> const& pair)
+                noexcept(std::is_nothrow_constructible_v<T1, U1 const&> &&
+                         std::is_nothrow_constructible_v<T2, U2 const&>):
                 detail::tight_pair_storage<T1, T2>(pair.template get<0>(), pair.template get<1>())
             {}
 
@@ -1035,7 +1049,9 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr explicit tight_pair(tight_pair<U1, U2>&& pair):
+            constexpr explicit tight_pair(tight_pair<U1, U2>&& pair)
+                noexcept(std::is_nothrow_constructible_v<T1, U1&&> &&
+                         std::is_nothrow_constructible_v<T2, U2&&>):
                 detail::tight_pair_storage<T1, T2>(std::forward<U1>(pair.template get<0>()),
                                                    std::forward<U2>(pair.template get<1>()))
             {}
@@ -1048,7 +1064,9 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr tight_pair(tight_pair<U1, U2>&& pair):
+            constexpr tight_pair(tight_pair<U1, U2>&& pair)
+                noexcept(std::is_nothrow_constructible_v<T1, U1&&> &&
+                         std::is_nothrow_constructible_v<T2, U2&&>):
                 detail::tight_pair_storage<T1, T2>(std::forward<U1>(pair.template get<0>()),
                                                    std::forward<U2>(pair.template get<1>()))
             {}
@@ -1079,6 +1097,7 @@ namespace cruft
                 )
             {}
 
+            // TODO: proper noexcept clause
             template<typename Tuple1, typename Tuple2>
             constexpr tight_pair(std::piecewise_construct_t pc,
                                  Tuple1&& first_args, Tuple2&& second_args):
