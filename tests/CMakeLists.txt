@@ -52,6 +52,7 @@ set(
 add_executable(
     tight_pair-testsuite
 
+    single_parameter.cpp
     main.cpp
     cppreference.cpp
     dr-811.cpp

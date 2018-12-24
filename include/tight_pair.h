@@ -963,7 +963,7 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr explicit tight_pair(T1 const& first, T2 const& second)
+            constexpr explicit tight_pair(T1 const& first, T2 const& second = {})
                 noexcept(std::is_nothrow_copy_constructible_v<T1> &&
                          std::is_nothrow_copy_constructible_v<T2>):
                 detail::tight_pair_storage<T1, T2>(first, second)
@@ -977,7 +977,7 @@ namespace cruft
                     bool
                 > = false
             >
-            constexpr tight_pair(T1 const& first, T2 const& second)
+            constexpr tight_pair(T1 const& first, T2 const& second = {})
                 noexcept(std::is_nothrow_copy_constructible_v<T1> &&
                          std::is_nothrow_copy_constructible_v<T2>):
                 detail::tight_pair_storage<T1, T2>(first, second)
