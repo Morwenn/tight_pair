@@ -1,14 +1,19 @@
-include(DownloadProject)
+include(FetchContent)
 
 # Download and configure Catch2 for the tests
-download_project(PROJ Catch2
-                 GIT_REPOSITORY https://github.com/catchorg/Catch2
-                 GIT_TAG master
-                 UPDATE_DISCONNECTED 1
+FetchContent_Declare(
+    catch2
+    GIT_REPOSITORY https://github.com/catchorg/Catch2
+    GIT_TAG master
 )
-add_subdirectory(${Catch2_SOURCE_DIR} ${Catch2_BINARY_DIR})
-list(APPEND CMAKE_MODULE_PATH ${Catch2_SOURCE_DIR}/contrib)
-include(Catch)
+
+FetchContent_GetProperties(catch2)
+if (NOT catch2_POPULATED)
+    FetchContent_Populate(catch2)
+    add_subdirectory(${catch2_SOURCE_DIR} ${catch2_BINARY_DIR})
+    list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
+    include(Catch)
+endif()
 
 # Define test files
 
