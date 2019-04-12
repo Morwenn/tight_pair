@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2018 Morwenn
+ * Copyright (c) 2017-2019 Morwenn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -209,6 +209,8 @@ namespace cruft
             }
 
 #if CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT && defined(__SIZEOF_INT128__)
+#pragma GCC diagnostic push
+#pragma GCC diagnostic ignored "-Wpedantic"
             // Only use unsigned __int128 with compilers
             // which are known to produce branchless code
             // for comparisons
@@ -216,6 +218,7 @@ namespace cruft
                          not has_padding_bits<unsigned __int128>()) {
                 return static_cast<unsigned __int128>(0);
             }
+#pragma GCC diagnostic pop
 #endif
         }
 
