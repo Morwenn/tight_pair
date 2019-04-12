@@ -23,41 +23,33 @@ add_library(tight_pair::tight_pair ALIAS tight_pair)
 
 # Install targets and files
 install(
-	TARGETS
-		tight_pair
-	EXPORT
-		tight_pair-targets
-	DESTINATION
-		${CMAKE_INSTALL_LIBDIR}
+    TARGETS tight_pair
+    EXPORT tight_pair-targets
+    DESTINATION ${CMAKE_INSTALL_LIBDIR}
 )
 
 install(
-	EXPORT
-		tight_pair-targets
-	NAMESPACE
-		tight_pair::
-	DESTINATION
-		"${CMAKE_INSTALL_LIBDIR}/cmake/tight_pair"
+    EXPORT tight_pair-targets
+    NAMESPACE tight_pair::
+    DESTINATION "${CMAKE_INSTALL_LIBDIR}/cmake/tight_pair"
 )
 
 install(
-	DIRECTORY
-		"include/"
-	DESTINATION
-		"${CMAKE_INSTALL_INCLUDEDIR}"
+    DIRECTORY "include/"
+    DESTINATION "${CMAKE_INSTALL_INCLUDEDIR}"
 )
 
 configure_package_config_file(
     ${CMAKE_SOURCE_DIR}/cmake/tight_pair-config.cmake.in
     ${CMAKE_BINARY_DIR}/cmake/tight_pair-config.cmake
     INSTALL_DESTINATION
-		${CMAKE_INSTALL_LIBDIR}/cmake/tight_pair
+        ${CMAKE_INSTALL_LIBDIR}/cmake/tight_pair
 )
 
 write_basic_package_version_file(
     ${CMAKE_BINARY_DIR}/cmake/tight_pair-config-version.cmake
     COMPATIBILITY
-		SameMajorVersion
+        SameMajorVersion
 )
 
 install(
@@ -68,11 +60,10 @@ install(
 )
 
 # Export target so that it can be used in subdirectories
-export(EXPORT tight_pair-targets
-    FILE
-		${CMAKE_BINARY_DIR}/cmake/tight_pair-targets.cmake
-    NAMESPACE
-		tight_pair::
+export(
+    EXPORT tight_pair-targets
+    FILE ${CMAKE_BINARY_DIR}/cmake/tight_pair-targets.cmake
+    NAMESPACE tight_pair::
 )
 
 # Build tests if this is the main project
