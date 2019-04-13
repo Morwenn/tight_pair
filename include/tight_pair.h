@@ -267,6 +267,17 @@ namespace cruft
             >
         {};
 
+        template<typename T>
+        constexpr auto best_alignment()
+            -> std::size_t
+        {
+            if constexpr(can_optimize_compare<T>::value) {
+                return alignof(decltype(twice_as_big<T>()));
+            } else {
+                return alignof(T);
+            }
+        }
+
         ////////////////////////////////////////////////////////////
         // Bits from libc++ <__tuple> header and more
 
@@ -742,7 +753,7 @@ namespace cruft
         struct tight_pair_storage<T, T, false, false>
         {
             // Store elements contiguously, avoid padding between elements
-            T elements[2];
+            alignas(best_alignment<T>()) T elements[2];
 
             ////////////////////////////////////////////////////////////
             // Construction
@@ -806,7 +817,7 @@ namespace cruft
         {
             // Store elements contiguously, avoid padding between elements,
             // reorder for more efficient bit tricks
-            T elements[2];
+            alignas(best_alignment<T>()) T elements[2];
 
             ////////////////////////////////////////////////////////////
             // Construction

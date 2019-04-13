@@ -58,6 +58,7 @@ add_executable(
     tight_pair-testsuite
 
     main.cpp
+    alignment.cpp
     cppreference.cpp
     dr-811.cpp
     empty_base_get.cpp
