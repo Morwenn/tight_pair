@@ -188,6 +188,11 @@ namespace cruft
         constexpr auto twice_as_big()
             -> decltype(auto)
         {
+#if CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT && defined(__SIZEOF_INT128__)
+#   pragma GCC diagnostic push
+#   pragma GCC diagnostic ignored "-Wpedantic"
+#endif
+
             if constexpr (has_padding_bits<UInt>()) {
                 return;
             }
@@ -218,8 +223,6 @@ namespace cruft
             }
 
 #if CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT && defined(__SIZEOF_INT128__)
-#pragma GCC diagnostic push
-#pragma GCC diagnostic ignored "-Wpedantic"
             // Only use unsigned __int128 with compilers
             // which are known to produce branchless code
             // for comparisons
@@ -227,7 +230,7 @@ namespace cruft
                          not has_padding_bits<unsigned __int128>()) {
                 return static_cast<unsigned __int128>(0);
             }
-#pragma GCC diagnostic pop
+#   pragma GCC diagnostic pop
 #endif
         }
 
