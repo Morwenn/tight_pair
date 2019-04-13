@@ -61,6 +61,17 @@ matrix:
       env: BUILD_TYPE=Release CMAKE_GENERATOR="Xcode"
       compiler: clang
 
+    # Windows GCC
+    - os: windows
+      language: sh
+      env: BUILD_TYPE=Debug CMAKE_GENERATOR="MinGW Makefiles"
+      compiler: gcc
+
+    - os: windows
+      language: sh
+      env: BUILD_TYPE=Release CMAKE_GENERATOR="MinGW Makefiles"
+      compiler: gcc
+
 install:
   - if [ "$CXX" = "g++" ]; then export CXX="g++-7"; fi
   - if [ "$CXX" = "clang++" ]; then export CXX="clang++-5.0"; fi
@@ -71,6 +82,7 @@ script:
           -DCMAKE_BUILD_TYPE="${BUILD_TYPE}"
           -DSANITIZE="${SANITIZE}"
           -G"${CMAKE_GENERATOR}"
+          -DCMAKE_SH="CMAKE_SH-NOTFOUND"
   - if [[ $TRAVIS_OS_NAME = "osx" ]]; then
         cmake --build build --config ${BUILD_TYPE} -- -jobs 2;
     else
