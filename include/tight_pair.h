@@ -262,8 +262,10 @@ namespace cruft
         struct can_optimize_compare:
             std::bool_constant<
                 (endian::native == endian::little || endian::native == endian::big) &&
-                std::is_unsigned_v<T> &&
-                has_twice_as_big<T>::value
+                std::conjunction_v<
+                    std::is_unsigned<T>,
+                    has_twice_as_big<T>
+                >
             >
         {};
 
@@ -648,10 +650,7 @@ namespace cruft
         struct needs_reordering:
             std::bool_constant<
                 endian::native == endian::little &&
-                std::conjunction<
-                    std::is_unsigned<T>,
-                    has_twice_as_big<T>
-                >::value
+                can_optimize_compare<T>::value
             >
         {};
 
