@@ -79,12 +79,15 @@ namespace std
     ////////////////////////////////////////////////////////////
     // Specializations needed for decomposition declarations
     //
-    // Some old versions of libc++ declared those type traits
-    // with 'class' instead of 'struct', so we ignore the
-    // resulting -Wmismatched-tags warning
+    // Depending on the standard library used, Clang might warn
+    // about mismatched struct/class on tuple_* traits, so we
+    // just silence the warning instead of special-casing for
+    // every standard library version
 
-#pragma clang diagnostic push
-#pragma clang diagnostic ignored "-Wmismatched-tags"
+#ifdef __clang__
+#   pragma clang diagnostic push
+#   pragma clang diagnostic ignored "-Wmismatched-tags"
+#endif
     template<typename T1, typename T2>
     struct tuple_size<cruft::tight_pair<T1, T2>>:
         std::integral_constant<std::size_t, 2>
@@ -107,7 +110,9 @@ namespace std
     {
         static_assert(N < 2, "out of bounds index for tuple_element<N, cruft::tight_pair<T1, T2>>");
     };
-#pragma clang diagnostic pop
+#ifdef __clang__
+#   pragma clang diagnostic pop
+#endif
 }
 
 namespace cruft
