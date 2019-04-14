@@ -146,7 +146,7 @@ namespace cruft
             // are guaranteed to have unique object representations when
             // they don't have padding bits
 
-            return std::has_unique_object_representations<UnsignedInteger>::value;
+            return not std::has_unique_object_representations<UnsignedInteger>::value;
 #else
             // Algorithm partly taken from WG14 N1899, also handles unsigned
             // integer types such as unsigned __int128 that don't have an
