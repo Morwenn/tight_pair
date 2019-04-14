@@ -526,14 +526,14 @@ namespace cruft
                     value(std::make_from_tuple<T>(std::forward<Tuple>(args)))
                 {}
 
-                auto operator=(tight_pair_element const& other)
+                constexpr auto operator=(tight_pair_element const& other)
                     -> tight_pair_element&
                 {
                     value = other.value;
                     return *this;
                 }
 
-                auto operator=(tight_pair_element&& other)
+                constexpr auto operator=(tight_pair_element&& other)
                     -> tight_pair_element&
                 {
                     value = std::move(other.value);
