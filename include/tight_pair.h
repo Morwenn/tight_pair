@@ -1427,7 +1427,7 @@ namespace cruft
     // branchless when possible
 
     template<typename T>
-    auto operator<(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
+    constexpr auto operator<(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
         -> std::enable_if_t<
             detail::can_optimize_compare<T>::value,
             bool
