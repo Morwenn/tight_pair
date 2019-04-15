@@ -3,7 +3,7 @@ from conans import CMake, ConanFile
 
 class TightPairConan(ConanFile):
     name = "tight_pair"
-    version = "1.0.0"
+    version = "1.1.0"
     license = "https://github.com/Morwenn/tight_pair/blob/master/LICENSE"
     url = "https://github.com/Morwenn/tight_pair"
     author = "Morwenn <morwenn29@hotmail.fr>"
