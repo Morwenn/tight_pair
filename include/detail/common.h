@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2019 Morwenn
+ * Copyright (c) 2017-2018 Morwenn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -21,26 +21,32 @@
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
  */
-#ifndef CRUFT_TIGHT_PAIR_H_
-#define CRUFT_TIGHT_PAIR_H_
+#ifndef CRUFT_TIGHT_PAIR_DETAIL_COMMON_H_
+#define CRUFT_TIGHT_PAIR_DETAIL_COMMON_H_
 
-#if __cplusplus > 201703L
-#   include "detail/tight_pair_cxx_2020.h"
-#elif __cplusplus > 201402L
-#   include "detail/tight_pair_cxx_2017.h"
-#else
-#   error "tight_pair needs C++17 or newer to work"
+////////////////////////////////////////////////////////////
+// Headers
+////////////////////////////////////////////////////////////
+#include <climits>
+#include <cstddef>
+#include <cstdint>
+#include <functional>
+#include <tuple>
+#include <type_traits>
+#include <utility>
+
+#ifndef CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT
+#   if defined(__clang__)
+#       define CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT 1
+#   elif defined(__GNUC__)
+#       if __GNUC__ >= 8
+#           define CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT 1
+#       else
+#           define CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT 0
+#       endif
+#   else
+#       define CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT 0
+#   endif
 #endif
 
-namespace cruft
-{
-#if __cplusplus > 201703L
-    using ::cruft::cxx_2020::tight_pair;
-    using ::cruft::cxx_2020::get;
-#elif __cplusplus > 201402L
-    using ::cruft::cxx_2017::tight_pair;
-    using ::cruft::cxx_2017::get;
-#endif
-}
-
-#endif // CRUFT_TIGHT_PAIR_H_
+#endif // CRUFT_TIGHT_PAIR_DETAIL_COMMON_H_

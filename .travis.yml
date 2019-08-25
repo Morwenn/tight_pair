@@ -1,80 +1,212 @@
 language: cpp
 dist: xenial
 
-addons:
-  apt:
-    sources:
-      - llvm-toolchain-xenial-5.0
-      - ubuntu-toolchain-r-test
-    packages:
-      - clang-5.0
-      - g++-7
-      - lcov
-      - valgrind
+_packages:
+  - &clang-2017 clang-5.0
+  - &gcc-2017 g++-7
+  - &clang-2020 clang-8
+  - &gcc-2020 g++-9
 
-cache:
-  ccache: true
+_apt_2017: &apt-common-2017
+  sources:
+    - llvm-toolchain-xenial-5.0
+    - ubuntu-toolchain-r-test
+
+_apt_2020: &apt-common-2020
+  sources:
+    - llvm-toolchain-xenial-8
+    - ubuntu-toolchain-r-test
 
 matrix:
   include:
 
-    # Linux clang
+    # Linux clang C++17
     - os: linux
       sudo: required
-      env: BUILD_TYPE=Debug SANITIZE=undefined CMAKE_GENERATOR="Unix Makefiles"
+      env: BUILD_TYPE=Debug SANITIZE=undefined CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=17
+      addons:
+        apt:
+          <<: *apt-common-2017
+          packages:
+            - *clang-2017
+            - *gcc-2017
       compiler: clang
 
     - os: linux
       sudo: required
-      env: BUILD_TYPE=Debug SANITIZE=address CMAKE_GENERATOR="Unix Makefiles"
+      env: BUILD_TYPE=Debug SANITIZE=address CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=17
+      addons:
+        apt:
+          <<: *apt-common-2017
+          packages:
+            - *clang-2017
+            - *gcc-2017
       compiler: clang
 
     - os: linux
       sudo: required
-      env: BUILD_TYPE=Release CMAKE_GENERATOR="Unix Makefiles"
+      env: BUILD_TYPE=Release CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=17
+      addons:
+        apt:
+          <<: *apt-common-2017
+          packages:
+            - *clang-2017
+            - *gcc-2017
       compiler: clang
 
-    # Linux gcc
+    # Linux clang C++20
+    - os: linux
+      sudo: required
+      env: BUILD_TYPE=Debug SANITIZE=undefined CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=20
+      addons:
+        apt:
+          <<: *apt-common-2020
+          packages:
+            - *clang-2020
+            - *gcc-2020
+      compiler: clang
+
+    - os: linux
+      sudo: required
+      env: BUILD_TYPE=Debug SANITIZE=address CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=20
+      addons:
+        apt:
+          <<: *apt-common-2020
+          packages:
+            - *clang-2020
+            - *gcc-2020
+      compiler: clang
+
+    - os: linux
+      sudo: required
+      env: BUILD_TYPE=Release CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=20
+      addons:
+        apt:
+          <<: *apt-common-2020
+          packages:
+            - *clang-2020
+            - *gcc-2020
+      compiler: clang
+
+    # Linux gcc C++17
     - os: linux
       sudo: false
-      env: BUILD_TYPE=Debug SANITIZE=undefined CMAKE_GENERATOR="Unix Makefiles"
+      env: BUILD_TYPE=Debug SANITIZE=undefined CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=17
+      addons:
+        apt:
+          <<: *apt-common-2017
+          packages:
+            - *gcc-2017
       compiler: gcc
 
     - os: linux
       sudo: required
-      env: BUILD_TYPE=Debug SANITIZE=address CMAKE_GENERATOR="Unix Makefiles"
+      env: BUILD_TYPE=Debug SANITIZE=address CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=17
+      addons:
+        apt:
+          <<: *apt-common-2017
+          packages:
+            - *gcc-2017
       compiler: gcc
 
     - os: linux
       sudo: false
-      env: BUILD_TYPE=Release CMAKE_GENERATOR="Unix Makefiles"
+      env: BUILD_TYPE=Release CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=17
+      addons:
+        apt:
+          <<: *apt-common-2017
+          packages:
+            - *gcc-2017
       compiler: gcc
 
-    # OSX clang
+    # Linux gcc C++20
+    - os: linux
+      sudo: false
+      env: BUILD_TYPE=Debug SANITIZE=undefined CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=20
+      addons:
+        apt:
+          <<: *apt-common-2020
+          packages:
+            - *gcc-2020
+      compiler: gcc
+
+    - os: linux
+      sudo: required
+      env: BUILD_TYPE=Debug SANITIZE=address CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=20
+      addons:
+        apt:
+          <<: *apt-common-2020
+          packages:
+            - *gcc-2020
+      compiler: gcc
+
+    - os: linux
+      sudo: false
+      env: BUILD_TYPE=Release CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=20
+      addons:
+        apt:
+          <<: *apt-common-2020
+          packages:
+            - *gcc-2020
+      compiler: gcc
+
+    # OSX clang C++17
     - os: osx
       osx_image: xcode10
-      env: BUILD_TYPE=Debug CMAKE_GENERATOR="Xcode"
+      env: BUILD_TYPE=Debug CMAKE_GENERATOR="Xcode" CXX_STANDARD=17
       compiler: clang
 
     - os: osx
       osx_image: xcode10
-      env: BUILD_TYPE=Release CMAKE_GENERATOR="Xcode"
+      env: BUILD_TYPE=Release CMAKE_GENERATOR="Xcode" CXX_STANDARD=17
       compiler: clang
 
-    # Windows GCC
+    # OSX clang C++20
+    - os: osx
+      osx_image: xcode11
+      env: BUILD_TYPE=Debug CMAKE_GENERATOR="Xcode" CXX_STANDARD=20
+      compiler: clang
+
+    - os: osx
+      osx_image: xcode11
+      env: BUILD_TYPE=Release CMAKE_GENERATOR="Xcode" CXX_STANDARD=20
+      compiler: clang
+
+    # Windows GCC C++17
     - os: windows
       language: sh
-      env: BUILD_TYPE=Debug CMAKE_GENERATOR="MinGW Makefiles"
+      env: BUILD_TYPE=Debug CMAKE_GENERATOR="MinGW Makefiles" CXX_STANDARD=17
       compiler: gcc
 
     - os: windows
       language: sh
-      env: BUILD_TYPE=Release CMAKE_GENERATOR="MinGW Makefiles"
+      env: BUILD_TYPE=Release CMAKE_GENERATOR="MinGW Makefiles" CXX_STANDARD=17
+      compiler: gcc
+      
+    # Windows GCC C++20
+    - os: windows
+      language: sh
+      env: BUILD_TYPE=Debug CMAKE_GENERATOR="MinGW Makefiles" CXX_STANDARD=20
+      compiler: gcc
+
+    - os: windows
+      language: sh
+      env: BUILD_TYPE=Release CMAKE_GENERATOR="MinGW Makefiles" CXX_STANDARD=20
       compiler: gcc
 
 install:
-  - if [ "$CXX" = "g++" ]; then export CXX="g++-7"; fi
-  - if [ "$CXX" = "clang++" ]; then export CXX="clang++-5.0"; fi
+  - if [[ $CXX = "g++" && $CXX_STANDARD = "17" ]]; then
+        export CXX="g++-7";
+    fi
+  - if [[ $CXX = "g++" && $CXX_STANDARD = "20" ]]; then
+        export CXX="g++-9";
+    fi
+  - if [[ $CXX = "clang++" && $CXX_STANDARD = "17" ]]; then
+        export CXX="clang++-5.0";
+    fi
+  - if [[ $CXX = "clang++" && $CXX_STANDARD = "20" ]]; then
+        export CXX="clang++-8";
+    fi
 
 script:
   - cmake -H. -Bbuild
@@ -83,13 +215,10 @@ script:
           -DSANITIZE="${SANITIZE}"
           -G"${CMAKE_GENERATOR}"
           -DCMAKE_SH="CMAKE_SH-NOTFOUND"
-  - if [[ $TRAVIS_OS_NAME = "osx" ]]; then
-        cmake --build build --config ${BUILD_TYPE} -- -jobs 2;
-    else
-        cmake --build build --config ${BUILD_TYPE} -- -j2;
-    fi
+          -DCMAKE_CXX_STANDARD="${CXX_STANDARD}"
+  - cmake --build build --config ${BUILD_TYPE} -j 2
   - cd build
-  - travis_wait ctest -C ${BUILD_TYPE} --output-on-failure -j 4
+  - ctest -C ${BUILD_TYPE} --output-on-failure
 
 notifications:
   email: false
