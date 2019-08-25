@@ -131,27 +131,10 @@ namespace cruft::cxx_2020
         constexpr auto has_padding_bits()
             -> bool
         {
-#ifdef __cpp_lib_has_unique_object_representations
             // A note in the standard mentions than unsigned integer types
             // are guaranteed to have unique object representations when
             // they don't have padding bits
-
             return not std::has_unique_object_representations_v<UnsignedInteger>;
-#else
-            // Algorithm partly taken from WG14 N1899, also handles unsigned
-            // integer types such as unsigned __int128 that don't have an
-            // std::numeric_limits specialization
-
-            std::size_t precision = 0;
-            auto num = static_cast<UnsignedInteger>(-1);
-            while (num != 0) {
-                if (num % 2 == 1) {
-                    ++precision;
-                }
-                num >>= 1;
-            }
-            return precision != sizeof(UnsignedInteger) * CHAR_BIT;
-#endif
         }
 
         ////////////////////////////////////////////////////////////
