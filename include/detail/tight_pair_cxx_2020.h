@@ -27,6 +27,7 @@
 ////////////////////////////////////////////////////////////
 // Headers
 ////////////////////////////////////////////////////////////
+#include <bit>
 #include <climits>
 #include <cstddef>
 #include <cstdint>
@@ -138,22 +139,6 @@ namespace cruft::cxx_2020
         }
 
         ////////////////////////////////////////////////////////////
-        // Detect endianness at compile-time, code taken from P0463
-
-        enum class endian
-        {
-#ifdef _WIN32
-            little = 0,
-            big    = 1,
-            native = little
-#else
-            little = __ORDER_LITTLE_ENDIAN__,
-            big    = __ORDER_BIG_ENDIAN__,
-            native = __BYTE_ORDER__
-#endif
-        };
-
-        ////////////////////////////////////////////////////////////
         // Find an unsigned integer type twice as big as the given
         // one, ensure all bits are used
 
@@ -234,7 +219,7 @@ namespace cruft::cxx_2020
         template<typename T>
         struct can_optimize_compare:
             std::bool_constant<
-                (endian::native == endian::little || endian::native == endian::big) &&
+                (std::endian::native == std::endian::little || std::endian::native == std::endian::big) &&
                 std::conjunction_v<
                     std::is_unsigned<T>,
                     has_twice_as_big<T>
