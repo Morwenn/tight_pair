@@ -4,7 +4,7 @@ dist: xenial
 _packages:
   - &clang-2017 clang-5.0
   - &gcc-2017 g++-7
-  - &clang-2020 clang-8
+  - &clang-2020 clang-9
   - &gcc-2020 g++-9
 
 _apt_2017: &apt-common-2017
@@ -14,7 +14,8 @@ _apt_2017: &apt-common-2017
 
 _apt_2020: &apt-common-2020
   sources:
-    - llvm-toolchain-xenial-8
+    - sourceline: 'deb https://apt.llvm.org/xenial/ llvm-toolchain-xenial-9 main'
+      key_url: 'https://apt.llvm.org/llvm-snapshot.gpg.key'
     - ubuntu-toolchain-r-test
 
 matrix:
@@ -58,6 +59,7 @@ matrix:
     - os: linux
       sudo: required
       env: BUILD_TYPE=Debug SANITIZE=undefined CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=20
+      sudo: required
       addons:
         apt:
           <<: *apt-common-2020
@@ -69,6 +71,7 @@ matrix:
     - os: linux
       sudo: required
       env: BUILD_TYPE=Debug SANITIZE=address CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=20
+      sudo: required
       addons:
         apt:
           <<: *apt-common-2020
@@ -80,6 +83,7 @@ matrix:
     - os: linux
       sudo: required
       env: BUILD_TYPE=Release CMAKE_GENERATOR="Unix Makefiles" CXX_STANDARD=20
+      sudo: required
       addons:
         apt:
           <<: *apt-common-2020
@@ -205,7 +209,7 @@ install:
         export CXX="clang++-5.0";
     fi
   - if [[ $CXX = "clang++" && $CXX_STANDARD = "20" ]]; then
-        export CXX="clang++-8";
+        export CXX="clang++-9";
     fi
 
 script:
