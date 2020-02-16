@@ -1,5 +1,8 @@
 include(FetchContent)
 
+# Test suite options
+set(SANITIZE "" CACHE STRING "Comma-separated list of options to pass to -fsanitize")
+
 # Download and configure Catch2 for the tests
 FetchContent_Declare(
     catch2
@@ -15,11 +18,22 @@ if (NOT catch2_POPULATED)
     include(Catch)
 endif()
 
-# Define test files
+# Make one executable for the whole test suite
+add_executable(
+    tight_pair-testsuite
 
-set(
-    LIBCXX_TESTS
+    # Custom additional tests
+    main.cpp
+    alignment.cpp
+    cppreference.cpp
+    dr-811.cpp
+    empty_base_get.cpp
+    p1951.cpp
+    piecewise_no_copy_move.cpp
+    reference_wrapper.cpp
+    tricky_comparisons.cpp
 
+    # libc++ tests
     libcxx/assign_const_pair_U_V.cpp
     libcxx/assign_pair.cpp
     libcxx/assign_rv_pair.cpp
@@ -51,22 +65,6 @@ set(
     libcxx/types.cpp
     libcxx/U_V.cpp
     libcxx/used_to_be_make_pair.cpp
-)
-
-# Make one executable for the whole testsuite
-add_executable(
-    tight_pair-testsuite
-
-    main.cpp
-    alignment.cpp
-    cppreference.cpp
-    dr-811.cpp
-    empty_base_get.cpp
-    p1951.cpp
-    piecewise_no_copy_move.cpp
-    reference_wrapper.cpp
-    tricky_comparisons.cpp
-    ${LIBCXX_TESTS}
 )
 
 target_link_libraries(tight_pair-testsuite
