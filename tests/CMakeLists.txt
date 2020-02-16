@@ -62,6 +62,7 @@ add_executable(
     cppreference.cpp
     dr-811.cpp
     empty_base_get.cpp
+    p1951.cpp
     piecewise_no_copy_move.cpp
     reference_wrapper.cpp
     tricky_comparisons.cpp
