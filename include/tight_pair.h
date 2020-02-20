@@ -1232,6 +1232,81 @@ namespace cruft
                     static_cast<storage_t const&&>(*this).template do_get<N>()
                 );
             }
+
+            ////////////////////////////////////////////////////////////
+            // Comparison operators (hidden friends)
+
+            friend constexpr auto operator==(tight_pair const& lhs, tight_pair const& rhs)
+                -> bool
+            {
+                return lhs.get<0>() == rhs.get<0>()
+                    && lhs.get<1>() == rhs.get<1>();
+            }
+
+            friend constexpr auto operator!=(tight_pair const& lhs, tight_pair const& rhs)
+                -> bool
+            {
+                return lhs.get<0>() != rhs.get<0>()
+                    || lhs.get<1>() != rhs.get<1>();
+            }
+
+            ////////////////////////////////////////////////////////////
+            // Relational operators, optimized to be branchless when
+            // possible (hidden friends)
+
+            friend constexpr auto operator<(tight_pair const& lhs, tight_pair const& rhs)
+                -> bool
+            {
+                if constexpr (std::is_same_v<T1, T2> && detail::can_optimize_compare<T1>::value) {
+                    auto big_lhs = detail::get_twice_as_big(lhs);
+                    auto big_rhs = detail::get_twice_as_big(rhs);
+                    return big_lhs < big_rhs;
+                } else {
+                    if (lhs.get<0>() < rhs.get<0>()) {
+                        return true;
+                    }
+                    if (rhs.get<0>() < lhs.get<0>()) {
+                        return false;
+                    }
+                    return lhs.get<1>() < rhs.get<1>();
+                }
+            }
+
+            friend constexpr auto operator<=(tight_pair const& lhs, tight_pair const& rhs)
+                -> bool
+            {
+                if constexpr (std::is_same_v<T1, T2> && detail::can_optimize_compare<T1>::value) {
+                    auto big_lhs = detail::get_twice_as_big(lhs);
+                    auto big_rhs = detail::get_twice_as_big(rhs);
+                    return big_lhs <= big_rhs;
+                } else {
+                    return not(rhs < lhs);
+                }
+            }
+
+            friend constexpr auto operator>(tight_pair const& lhs, tight_pair const& rhs)
+                -> bool
+            {
+                if constexpr (std::is_same_v<T1, T2> && detail::can_optimize_compare<T1>::value) {
+                    auto big_lhs = detail::get_twice_as_big(lhs);
+                    auto big_rhs = detail::get_twice_as_big(rhs);
+                    return big_lhs > big_rhs;
+                } else {
+                    return rhs < lhs;
+                }
+            }
+
+            friend constexpr auto operator>=(tight_pair const& lhs, tight_pair const& rhs)
+                -> bool
+            {
+                if constexpr (std::is_same_v<T1, T2> && detail::can_optimize_compare<T1>::value) {
+                    auto big_lhs = detail::get_twice_as_big(lhs);
+                    auto big_rhs = detail::get_twice_as_big(rhs);
+                    return big_lhs >= big_rhs;
+                } else {
+                    return not(lhs < rhs);
+                }
+            }
     };
 
     ////////////////////////////////////////////////////////////
@@ -1367,111 +1442,6 @@ namespace cruft
         -> T1 const&&
     {
         return cruft::get<1>(std::move(pair));
-    }
-
-    ////////////////////////////////////////////////////////////
-    // Generic comparison and relational operators
-
-    template<typename T, typename U>
-    constexpr auto operator==(tight_pair<T, U> const& lhs, tight_pair<T, U> const& rhs)
-        -> bool
-    {
-        return get<0>(lhs) == get<0>(rhs)
-            && get<1>(lhs) == get<1>(rhs);
-    }
-
-    template<typename T, typename U>
-    constexpr auto operator!=(tight_pair<T, U> const& lhs, tight_pair<T, U> const& rhs)
-        -> bool
-    {
-        return get<0>(lhs) != get<0>(rhs)
-            || get<1>(lhs) != get<1>(rhs);
-    }
-
-    template<typename T, typename U>
-    constexpr auto operator<(tight_pair<T, U> const& lhs, tight_pair<T, U> const& rhs)
-        -> bool
-    {
-        if (get<0>(lhs) < get<0>(rhs)) {
-            return true;
-        }
-        if (get<0>(rhs) < get<0>(lhs)) {
-            return false;
-        }
-        return get<1>(lhs) < get<1>(rhs);
-    }
-
-    template<typename T, typename U>
-    constexpr auto operator<=(tight_pair<T, U> const& lhs, tight_pair<T, U> const& rhs)
-        -> bool
-    {
-        return not(rhs < lhs);
-    }
-
-    template<typename T, typename U>
-    constexpr auto operator>(tight_pair<T, U> const& lhs, tight_pair<T, U> const& rhs)
-        -> bool
-    {
-        return rhs < lhs;
-    }
-
-    template<typename T, typename U>
-    constexpr auto operator>=(tight_pair<T, U> const& lhs, tight_pair<T, U> const& rhs)
-        -> bool
-    {
-        return not(lhs < rhs);
-    }
-
-    ////////////////////////////////////////////////////////////
-    // Comparison and relational operators optimized to be
-    // branchless when possible
-
-    template<typename T>
-    constexpr auto operator<(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
-        -> std::enable_if_t<
-            detail::can_optimize_compare<T>::value,
-            bool
-        >
-    {
-        auto big_lhs = detail::get_twice_as_big(lhs);
-        auto big_rhs = detail::get_twice_as_big(rhs);
-        return big_lhs < big_rhs;
-    }
-
-    template<typename T>
-    constexpr auto operator<=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
-        -> std::enable_if_t<
-            detail::can_optimize_compare<T>::value,
-            bool
-        >
-    {
-        auto big_lhs = detail::get_twice_as_big(lhs);
-        auto big_rhs = detail::get_twice_as_big(rhs);
-        return big_lhs <= big_rhs;
-    }
-
-    template<typename T>
-    constexpr auto operator>(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
-        -> std::enable_if_t<
-            detail::can_optimize_compare<T>::value,
-            bool
-        >
-    {
-        auto big_lhs = detail::get_twice_as_big(lhs);
-        auto big_rhs = detail::get_twice_as_big(rhs);
-        return big_lhs > big_rhs;
-    }
-
-    template<typename T>
-    constexpr auto operator>=(tight_pair<T, T> const& lhs, tight_pair<T, T> const& rhs)
-        -> std::enable_if_t<
-            detail::can_optimize_compare<T>::value,
-            bool
-        >
-    {
-        auto big_lhs = detail::get_twice_as_big(lhs);
-        auto big_rhs = detail::get_twice_as_big(rhs);
-        return big_lhs >= big_rhs;
     }
 }
 
