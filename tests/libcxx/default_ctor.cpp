@@ -57,4 +57,10 @@ TEST_CASE( "test default constructor" )
         using P2 = cruft::tight_pair<NoDefault, int>;
         static_assert(not std::is_default_constructible_v<P2>);
     }
+
+    {
+        struct Base {};
+        struct Derived: Base { protected: Derived() = default; };
+        static_assert(not std::is_default_constructible_v<cruft::tight_pair<Derived, int>>);
+    }
 }

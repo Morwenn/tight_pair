@@ -120,6 +120,41 @@ namespace cruft
     namespace detail
     {
         ////////////////////////////////////////////////////////////
+        // is_implicitly_default_constructible type trait,
+        // taken as is from libc++
+
+        template<typename T>
+        auto test_implicit_default_constructible(T)
+            -> void;
+
+        template<
+            typename T,
+            typename = void,
+            bool = std::is_default_constructible_v<T>
+        >
+        struct is_implicitly_default_constructible:
+            std::false_type
+        {};
+
+        template<typename T>
+        struct is_implicitly_default_constructible<
+            T,
+            decltype(test_implicit_default_constructible<T const&>({})),
+            true
+        >:
+            std::true_type
+        {};
+
+        template<typename T>
+        struct is_implicitly_default_constructible<
+            T,
+            decltype(test_implicit_default_constructible<T const&>({})),
+            false
+        >:
+            std::false_type
+        {};
+
+        ////////////////////////////////////////////////////////////
         // Whether a type can benefit from the empty base class
         // optimization
 
@@ -294,7 +329,10 @@ namespace cruft
         struct check_tuple_constructor_fail
         {
             template<typename...>
-            static constexpr bool enable_default = false;
+            static constexpr bool enable_explicit_default = false;
+
+            template<typename...>
+            static constexpr bool enable_implicit_default = false;
 
             template<typename...>
             static constexpr bool enable_explicit = false;
@@ -904,10 +942,18 @@ namespace cruft
             struct check_args
             {
                 template<typename U1, typename U2>
-                static constexpr bool enable_default()
+                static constexpr bool enable_explicit_default()
                 {
                     return std::is_default_constructible<U1>::value
-                        && std::is_default_constructible<U2>::value;
+                        && std::is_default_constructible<U2>::value
+                        && not enable_implicit_default<U1, U2>();
+                }
+
+                template<typename U1, typename U2>
+                static constexpr bool enable_implicit_default()
+                {
+                    return detail::is_implicitly_default_constructible<U1>::value
+                        && detail::is_implicitly_default_constructible<U2>::value;
                 }
 
                 template<typename U1, typename U2>
@@ -970,7 +1016,21 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_default<U1, U2>(),
+                    check_args::template enable_explicit_default<U1, U2>(),
+                    bool
+                > = false
+            >
+            explicit constexpr tight_pair()
+                noexcept(std::is_nothrow_default_constructible_v<T1> &&
+                         std::is_nothrow_default_constructible_v<T2>):
+                detail::tight_pair_storage<T1, T2>()
+            {}
+
+            template<
+                typename U1 = T1,
+                typename U2 = T2,
+                std::enable_if_t<
+                    check_args::template enable_implicit_default<U1, U2>(),
                     bool
                 > = false
             >
