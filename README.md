@@ -91,6 +91,8 @@ Now is the time to look at what actually makes this `tight_pair` different from 
 - Most of the constructors are conditionally `noexcept` (at the time of writing, only the piecewise constructor and the
   one that takes a pair-like object are not `noexcept`).
 
+- Comparison and relational operators are [hidden friends][hidden-friends].
+
 `cruft::tight_pair` also implements features library defects resolutions that were added to the standard after C++17
 was published:
 - [P1032][P1032] (C++20): make `operator=` and the piewise constructor `constexpr`.
@@ -144,6 +146,7 @@ this project when I didn't write it by myself:
   [cppreference]: https://cppreference.com
   [ebco]: http://en.cppreference.com/w/cpp/language/ebo
   [godbolt]: https://godbolt.org/
+  [hidden-friends]: https://www.justsoftwaresolutions.co.uk/cplusplus/hidden-friends.html
   [LWG2510]: https://wg21.link/LWG2510
   [N1899]: http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1899.pdf
   [no-unique-address]: https://en.cppreference.com/w/cpp/language/attributes/no_unique_address
