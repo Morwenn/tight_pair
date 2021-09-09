@@ -1,3 +1,6 @@
+# Copyright (c) 2017-2021 Morwenn
+# SPDX-License-Identifier: MIT
+
 cmake_minimum_required(VERSION 3.11.0)
 
 list(APPEND CMAKE_MODULE_PATH ${CMAKE_CURRENT_SOURCE_DIR}/cmake)
@@ -18,6 +21,11 @@ target_include_directories(tight_pair INTERFACE
 )
 
 target_compile_features(tight_pair INTERFACE cxx_std_17)
+
+# MSVC won't work without a stricter standard compliance
+if (MSVC)
+    target_compile_options(tight_pair INTERFACE /permissive-)
+endif()
 
 add_library(tight_pair::tight_pair ALIAS tight_pair)
 
