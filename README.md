@@ -32,14 +32,17 @@ Now is the time to look at what actually makes this `tight_pair` different from 
   #include <utility>
   #include <tight_pair.h>
 
-  // Store a comparison and a projection, imagine that
-  // the Ranges TS is already in the standard library :p
+  // Store a comparison and a projection (see C++20)
   auto p1 = std::pair(std::less{}, std::identity{});
   auto p2 = cruft::tight_pair(std::less{}, std::identity{});
 
   // prints "2 1" on my computer
   std::cout << sizeof(p1) << ' ' << sizeof(p2);
   ```
+
+  Recent `std::pair` implementations might rely on the C++20 [`[[no_unique_address]]`][no-unique-address] attribute to
+  compress empty objects. However not all compilers currently implement the compressing semantics of that attribute in
+  order to avoid ABI surprises.
 
 - Full EBCO requires to inherit privately from the empty base members in order to pack the pair as much as possible,
   even when holding instances of other empty pairs. However, this causes a problem with structured bindings: the
@@ -54,10 +57,11 @@ Now is the time to look at what actually makes this `tight_pair` different from 
   type aliases. The members can only be accessed through the `get` function template, and the member types can only be
   retrieved through `std::tuple_element`. It was a choice to only provide a minimal tuple-like interface.
 
-- Since it is a C++17-only library, I decided not to provide an equivalent to `std::make_pair`: the type deduction is
-  done through deduction guides. Unlike `std::pair`, the deduction guides are the ones that handle the decaying of
-  array and reference parameters as well as the unwrapping of `std::reference_wrapper<T>` to `T&`. Of course it is
-  still possible to store arrays or raw `std::reference_wrapper` instances by manually specifying the types.
+- Since it is a C++17-only library, I decided not to provide an equivalent to [`std::make_pair`][std-make-pair]: the
+  type deduction is done through deduction guides. Unlike `std::pair`, the deduction guides are the ones that handle
+  the decaying of array and reference parameters as well as the unwrapping of `std::reference_wrapper<T>` to `T&`. Of
+  course it is still possible to store arrays or raw `std::reference_wrapper` instances by manually specifying the
+  types.
 
   ```cpp
   int a = 5;
@@ -70,8 +74,8 @@ Now is the time to look at what actually makes this `tight_pair` different from 
   This notably allows to directly construct a `cruft::tight_pair` from `std::pair<T, U>`, `std::tuple<T, U>` or
   `std::array<T, 2>`, as well as other conforming types from third-party libraries.
 
-- Piecewise construction accepts tuple-like classes instead of just instances of `std::tuple` to pass arguments to
-  initialize the pair members.
+- Piecewise construction accepts tuple-like classes instead of just instances of [`std::tuple`][std-tuple] to pass
+  arguments to initialize the pair members.
 
 - When possible the comparison operators are optimized with bit tricks to be branchless, and hopefully faster than the
   `std::pair` equivalents. They are currently optimized for a subset of the `unsigned` types. Here are some benchmarks
@@ -84,15 +88,19 @@ Now is the time to look at what actually makes this `tight_pair` different from 
   `unsigned int`, but you get the idea. These benchmarks can be found in the `bench` directory of the project, and the
   results have been obtained with MinGW g++ 7.1.0 with the options `-O3 -march=native`.
 
-- Every function is `constexpr` if possible, even `operator=` (which is not the case for `std::pair`).
-
 - Most of the constructors are conditionally `noexcept` (at the time of writing, only the piecewise constructor and the
   one that takes a pair-like object are not `noexcept`).
+
+`cruft::tight_pair` also implements features library defects resolutions that were added to the standard after C++17
+was published:
+- [P1032][P1032] (C++20): make `operator=` and the piewise constructor `constexpr`.
+- [P1951][P1951] (C++23): default arguments for the forwarding constructor (see paper for rationale).
+- [LWG2510][LWG2510]: make the default constructor conditionally `explicit`.
 
 ## Compiler support and tooling
 
 ![Ubuntu builds status](https://github.com/Morwenn/tight_pair/workflows/Ubuntu%20Builds/badge.svg?branch=master)
-![Windows builds status](https://github.com/Morwenn/tight_pair/workflows/Windows%20Builds/badge.svg?branch=master)
+![Windows builds status](https://github.com/Morwenn/tight_pair/workflows/MSVC%20Builds/badge.svg?branch=master)
 ![MacOS builds status](https://github.com/Morwenn/tight_pair/workflows/MacOS%20Builds/badge.svg?branch=master)
 
 **tight_pair** requires C++17 support, and should work with the following compilers:
@@ -136,11 +144,17 @@ this project when I didn't write it by myself:
   [cppreference]: https://cppreference.com
   [ebco]: http://en.cppreference.com/w/cpp/language/ebo
   [godbolt]: https://godbolt.org/
+  [LWG2510]: https://wg21.link/LWG2510
   [N1899]: http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1899.pdf
+  [no-unique-address]: https://en.cppreference.com/w/cpp/language/attributes/no_unique_address
   [P0463]: https://wg21.link/P0463
+  [P1302]: https://wg21.link/P1302
+  [P1951]: https://wg21.link/P1951
+  [std-make-pair]: https://en.cppreference.com/w/cpp/utility/pair/make_pair
   [std-pair]: https://en.cppreference.com/w/cpp/utility/pair
   [std-pair-pair]: https://en.cppreference.com/w/cpp/utility/pair/pair
   [std-reference-wrapper]: https://en.cppreference.com/w/cpp/utility/functional/reference_wrapper
+  [std-tuple]: https://en.cppreference.com/w/cpp/utility/tuple
   [std-tuple-element]: https://en.cppreference.com/w/cpp/utility/tuple_element
   [std-tuple-size]: https://en.cppreference.com/w/cpp/utility/tuple_size
   [structured-bindings]: https://en.cppreference.com/w/cpp/language/structured_binding
