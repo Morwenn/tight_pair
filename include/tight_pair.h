@@ -212,7 +212,7 @@ namespace cruft
             return not std::has_unique_object_representations<UnsignedInteger>::value;
 #else
             // Algorithm partly taken from WG14 N1899, also handles unsigned
-            // integer types such as unsigned __int128 that don't have an
+            // integer types such as __uint128_t that don't have an
             // std::numeric_limits specialization
 
             std::size_t precision = 0;
@@ -251,11 +251,6 @@ namespace cruft
         constexpr auto twice_as_big()
             -> decltype(auto)
         {
-#if CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT && defined(__SIZEOF_INT128__)
-#   pragma GCC diagnostic push
-#   pragma GCC diagnostic ignored "-Wpedantic"
-#endif
-
             if constexpr (has_padding_bits<UInt>()) {
                 return;
             }
@@ -286,14 +281,12 @@ namespace cruft
             }
 
 #if CRUFT_TIGHT_PAIR_USE_UNSIGNED_128INT && defined(__SIZEOF_INT128__)
-            // Only use unsigned __int128 with compilers
-            // which are known to produce branchless code
-            // for comparisons
-            else if constexpr(sizeof(unsigned __int128) == 2 * sizeof(UInt) &&
-                         not has_padding_bits<unsigned __int128>()) {
-                return static_cast<unsigned __int128>(0);
+            // Only use __uint128_t with compilers which are known
+            // to produce branchless code for comparisons
+            else if constexpr(sizeof(__uint128_t) == 2 * sizeof(UInt) &&
+                         not has_padding_bits<__uint128_t>()) {
+                return static_cast<__uint128_t>(0);
             }
-#   pragma GCC diagnostic pop
 #endif
         }
 
@@ -314,7 +307,7 @@ namespace cruft
 
             // We use CHAR_BIT instead of std::numeric_limits because the
             // latter might lack a few specializations for types such as
-            // unsigned __int128 unless some specific constant is defined
+            // __uint128_t unless some specific constant is defined
 
             using cruft::get;
             return static_cast<decltype(twice_as_big<T>())>(
