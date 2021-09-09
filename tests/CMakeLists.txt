@@ -1,3 +1,6 @@
+# Copyright (c) 2017-2021 Morwenn
+# SPDX-License-Identifier: MIT
+
 include(FetchContent)
 
 # Test suite options
@@ -80,13 +83,16 @@ target_compile_definitions(tight_pair-testsuite
         CATCH_CONFIG_DISABLE_MATCHERS
 )
 
-# General settings, mostly warnings
-target_compile_options(tight_pair-testsuite
-    PRIVATE
-        -Wall -Wextra -Wcast-align -Winline -Wmissing-declarations -Wmissing-include-dirs
-        -Wnon-virtual-dtor -Wodr -Wpedantic -Wredundant-decls -Wundef -Wunreachable-code
-        $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op -Wuseless-cast -Wzero-as-null-pointer-constant>
-)
+if (MSVC)
+    target_compile_options(tight_pair-testsuite PRIVATE /W2)
+else()
+    target_compile_options(tight_pair-testsuite
+        PRIVATE
+            -Wall -Wextra -Wcast-align -Winline -Wmissing-declarations -Wmissing-include-dirs
+            -Wnon-virtual-dtor -Wodr -Wpedantic -Wredundant-decls -Wundef -Wunreachable-code
+            $<$<CXX_COMPILER_ID:GNU>:-Wlogical-op -Wuseless-cast -Wzero-as-null-pointer-constant>
+    )
+endif()
 
 # Settings depending on debug/release mode
 target_compile_options(tight_pair-testsuite
