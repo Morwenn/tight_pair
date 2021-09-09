@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2019 Morwenn
+ * Copyright (c) 2017-2021 Morwenn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -153,6 +153,34 @@ namespace cruft
         >:
             std::false_type
         {};
+
+        ////////////////////////////////////////////////////////////
+        // is_copy_assignable_nocheck: avoid issues with incomplete
+        // type warnings in MSVC
+
+#if defined(_IS_ASSIGNABLE_NOCHECK_SUPPORTED) && !defined(__CUDACC__)
+        template<typename T>
+        struct is_copy_assignable_nocheck:
+            std::integral_constant<bool, __is_assignable_no_precondition_check(
+                std::add_lvalue_reference_t<T>,
+                std::add_lvalue_reference_t<const T>
+            )>
+        {};
+
+        template<typename T>
+        struct is_move_assignable_nocheck:
+            std::integral_constant<bool, __is_assignable_no_precondition_check(
+                std::add_lvalue_reference_t<T>,
+                T
+            )>
+        {};
+#else
+        template<typename T>
+        using is_copy_assignable_nocheck = std::is_copy_assignable<T>;
+
+        template<typename T>
+        using is_move_assignable_nocheck = std::is_move_assignable<T>;
+#endif
 
         ////////////////////////////////////////////////////////////
         // Whether a type can benefit from the empty base class
@@ -342,6 +370,37 @@ namespace cruft
 
             template<typename...>
             static constexpr bool enable_assign = false;
+        };
+
+        struct check_args_default
+        {
+            template<typename U1, typename U2>
+            static constexpr bool enable_implicit_default =
+                detail::is_implicitly_default_constructible<U1>::value &&
+                detail::is_implicitly_default_constructible<U2>::value;
+
+            template<typename U1, typename U2>
+            static constexpr bool enable_explicit_default =
+                std::is_default_constructible<U1>::value &&
+                std::is_default_constructible<U2>::value &&
+                not enable_implicit_default<U1, U2>;
+        };
+
+        template<typename T1, typename T2>
+        struct check_args
+        {
+            template<typename U1, typename U2>
+            static constexpr bool enable_explicit =
+                std::is_constructible<T1, U1>::value &&
+                std::is_constructible<T2, U2>::value &&
+                (not std::is_convertible<U1, T1>::value || not std::is_convertible<U2, T2>::value);
+
+            template<typename U1, typename U2>
+            static constexpr bool enable_implicit =
+                std::is_constructible<T1, U1>::value &&
+                std::is_constructible<T2, U2>::value &&
+                std::is_convertible<U1, T1>::value &&
+                std::is_convertible<U2, T2>::value;
         };
 
         ////////////////////////////////////////////////////////////
@@ -939,62 +998,20 @@ namespace cruft
     {
         private:
 
-            struct check_args
-            {
-                template<typename U1, typename U2>
-                static constexpr bool enable_explicit_default()
-                {
-                    return std::is_default_constructible<U1>::value
-                        && std::is_default_constructible<U2>::value
-                        && not enable_implicit_default<U1, U2>();
-                }
-
-                template<typename U1, typename U2>
-                static constexpr bool enable_implicit_default()
-                {
-                    return detail::is_implicitly_default_constructible<U1>::value
-                        && detail::is_implicitly_default_constructible<U2>::value;
-                }
-
-                template<typename U1, typename U2>
-                static constexpr bool enable_explicit()
-                {
-                    return std::is_constructible<T1, U1>::value
-                        && std::is_constructible<T2, U2>::value
-                        && (not std::is_convertible<U1, T1>::value ||
-                            not std::is_convertible<U2, T2>::value);
-                }
-
-                template<typename U1, typename U2>
-                static constexpr bool enable_implicit()
-                {
-                    return std::is_constructible<T1, U1>::value
-                        && std::is_constructible<T2, U2>::value
-                        && std::is_convertible<U1, T1>::value
-                        && std::is_convertible<U2, T2>::value;
-                }
-            };
-
             struct check_tuple_like_constructor
             {
                 template<typename Tuple>
-                static constexpr bool enable_implicit()
-                {
-                    return detail::adl_hook::pair_convertible<Tuple, tight_pair>::value;
-                }
+                static constexpr bool enable_implicit =
+                    detail::adl_hook::pair_convertible<Tuple, tight_pair>::value;
 
                 template<typename Tuple>
-                static constexpr bool enable_explicit()
-                {
-                    return detail::adl_hook::pair_constructible<tight_pair&, Tuple>::value
-                        && not detail::adl_hook::pair_convertible<Tuple, tight_pair>::value;
-                }
+                static constexpr bool enable_explicit =
+                    detail::adl_hook::pair_constructible<tight_pair&, Tuple>::value &&
+                    not detail::adl_hook::pair_convertible<Tuple, tight_pair>::value;
 
                 template<typename Tuple>
-                static constexpr bool enable_assign()
-                {
-                    return detail::adl_hook::pair_assignable<tight_pair&, Tuple>::value;
-                }
+                static constexpr bool enable_assign =
+                    detail::adl_hook::pair_assignable<tight_pair&, Tuple>::value;
             };
 
             template<typename T>
@@ -1016,7 +1033,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_explicit_default<U1, U2>(),
+                    detail::check_args_default::enable_explicit_default<U1, U2>,
                     bool
                 > = false
             >
@@ -1030,7 +1047,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_implicit_default<U1, U2>(),
+                    detail::check_args_default::enable_implicit_default<U1, U2>,
                     bool
                 > = false
             >
@@ -1044,7 +1061,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_explicit<U1 const&, U2 const&>(),
+                    detail::check_args<T1, T2>::template enable_explicit<U1 const&, U2 const&>,
                     bool
                 > = false
             >
@@ -1058,7 +1075,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_implicit<U1 const&, U2 const&>(),
+                    detail::check_args<T1, T2>::template enable_implicit<U1 const&, U2 const&>,
                     bool
                 > = false
             >
@@ -1072,7 +1089,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_explicit<U1, U2>(),
+                    detail::check_args<T1, T2>::template enable_explicit<U1, U2>,
                     bool
                 > = false
             >
@@ -1087,7 +1104,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_implicit<U1, U2>(),
+                    detail::check_args<T1, T2>::template enable_implicit<U1, U2>,
                     bool
                 > = false
             >
@@ -1102,7 +1119,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_explicit<U1 const&, U2 const&>(),
+                    detail::check_args<T1, T2>::template enable_explicit<U1 const&, U2 const&>,
                     bool
                 > = false
             >
@@ -1116,7 +1133,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_implicit<U1 const&, U2 const&>(),
+                    detail::check_args<T1, T2>::template enable_implicit<U1 const&, U2 const&>,
                     bool
                 > = false
             >
@@ -1130,7 +1147,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_explicit<U1, U2>(),
+                    detail::check_args<T1, T2>::template enable_explicit<U1, U2>,
                     bool
                 > = false
             >
@@ -1145,7 +1162,7 @@ namespace cruft
                 typename U1 = T1,
                 typename U2 = T2,
                 std::enable_if_t<
-                    check_args::template enable_implicit<U1, U2>(),
+                    detail::check_args<T1, T2>::template enable_implicit<U1, U2>,
                     bool
                 > = false
             >
@@ -1159,7 +1176,7 @@ namespace cruft
             template<
                 typename Tuple,
                 std::enable_if_t<
-                    check_pair_like<Tuple>::template enable_explicit<Tuple>()
+                    check_pair_like<Tuple>::template enable_explicit<Tuple>
                 >
             >
             constexpr explicit tight_pair(Tuple&& tuple):
@@ -1172,8 +1189,9 @@ namespace cruft
             template<
                 typename Tuple,
                 std::enable_if_t<
-                    check_pair_like<Tuple>::template enable_implicit<Tuple>()
-                >
+                    check_pair_like<Tuple>::template enable_implicit<Tuple>,
+                    int
+                > = 0
             >
             constexpr tight_pair(Tuple&& tuple):
                 detail::tight_pair_storage<T1, T2>(
@@ -1194,8 +1212,8 @@ namespace cruft
             // Assignment operator
 
             constexpr auto operator=(std::conditional_t<
-                                std::is_copy_assignable<T1>::value &&
-                                std::is_copy_assignable<T2>::value,
+                                detail::is_copy_assignable_nocheck<T1>::value &&
+                                detail::is_copy_assignable_nocheck<T2>::value,
                             tight_pair, detail::nat> const& other)
                 noexcept(noexcept(std::is_nothrow_copy_assignable<T1>::value &&
                                   std::is_nothrow_copy_assignable<T2>::value))
@@ -1207,8 +1225,8 @@ namespace cruft
             }
 
             constexpr auto operator=(std::conditional_t<
-                                std::is_move_assignable<T1>::value &&
-                                std::is_move_assignable<T2>::value,
+                                detail::is_move_assignable_nocheck<T1>::value &&
+                                detail::is_move_assignable_nocheck<T2>::value,
                             tight_pair, detail::nat>&& other)
                 noexcept(noexcept(std::is_nothrow_move_assignable<T1>::value &&
                                   std::is_nothrow_move_assignable<T2>::value))
@@ -1222,7 +1240,7 @@ namespace cruft
             template<
                 typename Tuple,
                 typename = std::enable_if_t<
-                    check_pair_like<Tuple>::template enable_assign<Tuple>()
+                    check_pair_like<Tuple>::template enable_assign<Tuple>
                 >
             >
             constexpr auto operator=(Tuple&& other)

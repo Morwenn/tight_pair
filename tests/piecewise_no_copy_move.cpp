@@ -1,7 +1,7 @@
 /*
  * The MIT License (MIT)
  *
- * Copyright (c) 2017-2018 Morwenn
+ * Copyright (c) 2017-2021 Morwenn
  *
  * Permission is hereby granted, free of charge, to any person obtaining a copy
  * of this software and associated documentation files (the "Software"), to deal
@@ -54,7 +54,8 @@ TEST_CASE( "test that piecewise construction works with no copy/move ctor" )
     constexpr cruft::tight_pair<DummyA, DummyB> pr1(
         std::piecewise_construct,
         std::forward_as_tuple(1, 2),
-        std::forward_as_tuple(3, 4));
+        std::forward_as_tuple(3, 4)
+    );
 
     CHECK(get<0>(pr1).a == 1);
     CHECK(get<0>(pr1).b == 2);
@@ -65,10 +66,14 @@ TEST_CASE( "test that piecewise construction works with no copy/move ctor" )
     static_assert(get<1>(pr1).a == 3);
     static_assert(get<1>(pr1).b == 4);
 
+#if defined(_MSC_VER) && _MSC_VER >= 1930
+    // MSVC has some constexpr bug before version 19.30
+
     constexpr cruft::tight_pair<DummyA, DummyA> pr2(
-    std::piecewise_construct,
-    std::forward_as_tuple(1, 2),
-    std::forward_as_tuple(3, 4));
+        std::piecewise_construct,
+        std::forward_as_tuple(1, 2),
+        std::forward_as_tuple(3, 4)
+    );
 
     CHECK(get<0>(pr2).a == 1);
     CHECK(get<0>(pr2).b == 2);
@@ -78,4 +83,5 @@ TEST_CASE( "test that piecewise construction works with no copy/move ctor" )
     static_assert(get<0>(pr2).b == 2);
     static_assert(get<1>(pr2).a == 3);
     static_assert(get<1>(pr2).b == 4);
+#endif // defined
 }
