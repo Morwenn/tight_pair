@@ -1,9 +1,14 @@
+# Copyright (c) 2019-2021 Morwenn
+# SPDX-License-Identifier: MIT
+
 cmake_minimum_required(VERSION 2.8.12)
 
-project(TightPairTest CXX)
+project(test_package CXX)
 
 include(${CMAKE_BINARY_DIR}/conanbuildinfo.cmake)
-conan_basic_setup()
+conan_basic_setup(TARGETS)
 
-add_executable(example tight_pair-integrity.cpp)
-set_property(TARGET example PROPERTY CXX_STANDARD 17)
+find_package(tight_pair REQUIRED CONFIG)
+
+add_executable(${PROJECT_NAME} tight_pair-integrity.cpp)
+target_link_libraries(${PROJECT_NAME} PRIVATE tight_pair::tight_pair)

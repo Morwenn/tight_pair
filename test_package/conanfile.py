@@ -1,12 +1,15 @@
 # -*- coding: utf-8 -*-
 
+# Copyright (c) 2019-2021 Morwenn
+# SPDX-License-Identifier: MIT
+
 import os.path
 
 from conans import ConanFile, CMake, tools
 
 class TightPairTestConan(ConanFile):
     settings = "os", "compiler", "build_type", "arch"
-    generators = "cmake"
+    generators = "cmake", "cmake_find_package_multi"
 
     def build(self):
         cmake = CMake(self)
@@ -14,5 +17,6 @@ class TightPairTestConan(ConanFile):
         cmake.build()
 
     def test(self):
-        os.chdir('bin')
-        self.run(os.path.join('.', 'example'))
+        if not tools.cross_building(self.settings):
+            bin_path = os.path.join("bin", "test_package")
+            self.run(bin_path, run_environment=True)
