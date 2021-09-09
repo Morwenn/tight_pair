@@ -8,6 +8,7 @@ include(FetchContent)
 
 set(SANITIZE "" CACHE STRING "Comma-separated list of options to pass to -fsanitize")
 option(TIGHT_PAIR_ENABLE_COVERAGE "Whether to produce code coverage" OFF)
+option(TIGHT_PAIR_USE_VALGRIND "Whether to run the tests with Valgrind" OFF)
 
 # Apparently ENABLE_COVERAGE is needed either way
 if (TIGHT_PAIR_ENABLE_COVERAGE)
@@ -147,6 +148,14 @@ if (TIGHT_PAIR_ENABLE_COVERAGE)
 
     list(APPEND LCOV_REMOVE_PATTERNS "'/usr/*'")
     coverage_evaluate()
+endif()
+
+########################################
+# Configure Valgrind
+
+if (TIGHT_PAIR_USE_VALGRIND)
+    find_program(MEMORYCHECK_COMMAND valgrind REQUIRED)
+    set(MEMORYCHECK_COMMAND_OPTIONS "--leak-check=full --track-origins=yes --error-exitcode=1 --show-reachable=no")
 endif()
 
 ########################################
