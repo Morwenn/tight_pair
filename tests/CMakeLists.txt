@@ -3,10 +3,20 @@
 
 include(FetchContent)
 
+########################################
 # Test suite options
-set(SANITIZE "" CACHE STRING "Comma-separated list of options to pass to -fsanitize")
 
-# Download and configure Catch2 for the tests
+set(SANITIZE "" CACHE STRING "Comma-separated list of options to pass to -fsanitize")
+option(TIGHT_PAIR_ENABLE_COVERAGE "Whether to produce code coverage" OFF)
+
+# Apparently ENABLE_COVERAGE is needed either way
+if (TIGHT_PAIR_ENABLE_COVERAGE)
+    set(ENABLE_COVERAGE ON CACHE BOOL "Enable coverage build." FORCE)
+endif()
+
+########################################
+# Download and configure Catch2
+
 FetchContent_Declare(
     catch2
     GIT_REPOSITORY https://github.com/catchorg/Catch2
@@ -20,6 +30,9 @@ if (NOT catch2_POPULATED)
     list(APPEND CMAKE_MODULE_PATH ${catch2_SOURCE_DIR}/contrib)
     include(Catch)
 endif()
+
+########################################
+# Create and configure tests
 
 # Make one executable for the whole test suite
 add_executable(
@@ -120,6 +133,24 @@ if (UNIX AND SANITIZE)
             " -fsanitize=${SANITIZE} -fno-sanitize-recover=all"
     )
 endif()
+
+########################################
+# Configure coverage
+
+if (TIGHT_PAIR_ENABLE_COVERAGE)
+    find_package(codecov)
+    add_coverage(tight_pair-testsuite)
+
+    # Set flags specific to coverage builds
+    target_compile_options(tight_pair-testsuite PRIVATE --coverage)
+    set_property(TARGET tight_pair-testsuite APPEND_STRING PROPERTY LINK_FLAGS " --coverage")
+
+    list(APPEND LCOV_REMOVE_PATTERNS "'/usr/*'")
+    coverage_evaluate()
+endif()
+
+########################################
+# Discover tests
 
 include(CTest)
 catch_discover_tests(tight_pair-testsuite)
