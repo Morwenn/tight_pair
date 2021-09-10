@@ -95,7 +95,7 @@ Now is the time to look at what actually makes this `tight_pair` different from 
 
 `cruft::tight_pair` also implements features library defects resolutions that were added to the standard after C++17
 was published:
-- [P1032][P1032] (C++20): make `operator=` and the piewise constructor `constexpr`.
+- [P1032][P1032] (C++20): make `operator=`, `swap` and the piewise constructor `constexpr`.
 - [P1951][P1951] (C++23): default arguments for the forwarding constructor (see paper for rationale).
 - [LWG2510][LWG2510]: make the default constructor conditionally `explicit`.
 
