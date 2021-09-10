@@ -1311,15 +1311,27 @@ namespace cruft
             friend constexpr auto operator==(tight_pair const& lhs, tight_pair const& rhs)
                 -> bool
             {
-                return lhs.get<0>() == rhs.get<0>()
-                    && lhs.get<1>() == rhs.get<1>();
+                if constexpr (std::is_same_v<T1, T2> && detail::can_optimize_compare<T1>::value) {
+                    auto big_lhs = detail::get_twice_as_big(lhs);
+                    auto big_rhs = detail::get_twice_as_big(rhs);
+                    return big_lhs == big_rhs;
+                } else {
+                    return lhs.get<0>() == rhs.get<0>()
+                        && lhs.get<1>() == rhs.get<1>();
+                }
             }
 
             friend constexpr auto operator!=(tight_pair const& lhs, tight_pair const& rhs)
                 -> bool
             {
-                return lhs.get<0>() != rhs.get<0>()
-                    || lhs.get<1>() != rhs.get<1>();
+                if constexpr (std::is_same_v<T1, T2> && detail::can_optimize_compare<T1>::value) {
+                    auto big_lhs = detail::get_twice_as_big(lhs);
+                    auto big_rhs = detail::get_twice_as_big(rhs);
+                    return big_lhs != big_rhs;
+                } else {
+                    return lhs.get<0>() != rhs.get<0>()
+                        || lhs.get<1>() != rhs.get<1>();
+                }
             }
 
             ////////////////////////////////////////////////////////////

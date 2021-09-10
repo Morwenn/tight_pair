@@ -5,15 +5,30 @@
 #include <catch2/catch.hpp>
 #include <tight_pair.h>
 
-TEMPLATE_TEST_CASE( "test optimized comparisons", "[comparisons]",
+TEMPLATE_TEST_CASE( "test optimized comparison operators", "[comparisons]",
                     unsigned char,
                     unsigned short,
                     unsigned int,
                     unsigned long,
                     unsigned long long )
 {
-    using cruft::get;
+    using integer_t = TestType;
 
+    cruft::tight_pair<integer_t, integer_t> p1(5, 8);
+    cruft::tight_pair<integer_t, integer_t> p2(12, 12);
+    cruft::tight_pair<integer_t, integer_t> p3(5, 8);
+    CHECK( p1 != p2 );
+    CHECK( p1 == p3 );
+    CHECK( p2 != p3 );
+}
+
+TEMPLATE_TEST_CASE( "test optimized relational operators", "[comparisons]",
+                    unsigned char,
+                    unsigned short,
+                    unsigned int,
+                    unsigned long,
+                    unsigned long long )
+{
     using integer_t = TestType;
 
     cruft::tight_pair<integer_t, integer_t> p1(5, 6);

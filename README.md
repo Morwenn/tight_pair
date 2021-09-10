@@ -77,15 +77,15 @@ Now is the time to look at what actually makes this `tight_pair` different from 
 - Piecewise construction accepts tuple-like classes instead of just instances of [`std::tuple`][std-tuple] to pass
   arguments to initialize the pair members.
 
-- When possible the comparison operators are optimized with bit tricks to be branchless, and hopefully faster than the
-  `std::pair` equivalents. They are currently optimized for a subset of the `unsigned` types. Here are some benchmarks
-  results I obtained by feeding instances of `std::pair` and `cruft::tight_pair` to comparison sorts from another of my
-  libraries:
+- When possible the comparison and relational operators are optimized with bit tricks to be branchless, and hopefully
+  faster than their `std::pair` equivalents. They are currently optimized for a subset of the `unsigned` types. Here
+  are some benchmarks results I obtained by feeding instances of `std::pair` and `cruft::tight_pair` to comparison
+  sorts from another of my libraries:
 
   ![Benchmark sorting std::pair and cruft::tight_pair](https://i.imgur.com/4wRL5i1.png)
 
   *Of course* those benchmarks are biased: you may not always get results that good if you replace `unsigned short` by
-  `unsigned int`, but you get the idea. These benchmarks can be found in the `bench` directory of the project, and the
+  `unsigned int`, but you get the idea. The benchmarks can be found in the `bench` directory of the project, and the
   results have been obtained with MinGW g++ 7.1.0 with the options `-O3 -march=native`.
 
 - Most of the constructors are conditionally `noexcept` (at the time of writing, only the piecewise constructor and the
