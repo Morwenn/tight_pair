@@ -48,6 +48,7 @@ add_executable(
     p1951.cpp
     piecewise_no_copy_move.cpp
     reference_wrapper.cpp
+    swap.cpp
     tricky_comparisons.cpp
 
     # libc++ tests

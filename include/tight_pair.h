@@ -961,6 +961,25 @@ namespace cruft
                 }
             }
         };
+
+        ////////////////////////////////////////////////////////////
+        // Free swap function
+
+        template<
+            typename T1,
+            typename T2,
+            typename = std::enable_if_t<
+                std::is_swappable_v<T1> && std::is_swappable_v<T2>
+            >
+        >
+        constexpr auto swap(tight_pair_storage<T1, T2>& lhs, tight_pair_storage<T1, T2>& rhs)
+            noexcept(std::is_nothrow_swappable_v<T1> && std::is_nothrow_swappable_v<T2>)
+            -> void
+        {
+            auto tmp = std::move(lhs);
+            lhs = std::move(rhs);
+            rhs = std::move(tmp);
+        }
     }
 
     ////////////////////////////////////////////////////////////
@@ -1230,12 +1249,13 @@ namespace cruft
             // Swap
 
             constexpr auto swap(tight_pair& other)
-                noexcept(std::is_nothrow_swappable_v<T1> &&
-                         std::is_nothrow_swappable_v<T2>)
+                noexcept(std::is_nothrow_swappable_v<T1> && std::is_nothrow_swappable_v<T2>)
                 -> void
             {
-                std::swap(static_cast<detail::tight_pair_storage<T1, T2>&>(*this),
-                          static_cast<detail::tight_pair_storage<T1, T2>&>(other));
+                cruft::detail::swap(
+                    static_cast<detail::tight_pair_storage<T1, T2>&>(*this),
+                    static_cast<detail::tight_pair_storage<T1, T2>&>(other)
+                );
             }
 
             ////////////////////////////////////////////////////////////
