@@ -51,6 +51,15 @@ namespace
         ImplicitNothrowT(int x) noexcept: value(x) {}
         int value;
     };
+
+    struct TrackInit
+    {
+        TrackInit() = default;
+        constexpr TrackInit(TrackInit const&): wasCopyInit(true) {}
+        constexpr TrackInit(TrackInit&&): wasMoveInit(true) {}
+        bool wasMoveInit = false;
+        bool wasCopyInit = false;
+    };
 }
 
 TEST_CASE( "test U V" )
@@ -102,6 +111,42 @@ TEST_CASE( "test U V" )
         constexpr cruft::tight_pair<ImplicitT, ImplicitT> p = {42, 43};
         static_assert(get<0>(p).value == 42);
         static_assert(get<1>(p).value == 43);
+    }
+}
+
+TEST_CASE( "test U V P1951" )
+{
+    // Test support for http://wg21.link/P1951, default arguments for pair's constructor.
+    // Basically, this turns copies for brace initialization into moves.
+
+    using cruft::get;
+
+    // Explicit constructor
+    {
+        {
+            constexpr cruft::tight_pair<TrackInit, int> p({}, 3);
+            static_assert(    get<0>(p).wasMoveInit);
+            static_assert(not get<0>(p).wasCopyInit);
+        }
+        {
+            constexpr cruft::tight_pair<int, TrackInit> p(3, {});
+            static_assert(    get<1>(p).wasMoveInit);
+            static_assert(not get<1>(p).wasCopyInit);
+        }
+    }
+
+    // Implicit constructor
+    {
+        {
+            constexpr cruft::tight_pair<TrackInit, int> p = {{}, 3};
+            static_assert(    get<0>(p).wasMoveInit);
+            static_assert(not get<0>(p).wasCopyInit);
+        }
+        {
+            constexpr cruft::tight_pair<int, TrackInit> p = {3, {}};
+            static_assert(    get<1>(p).wasMoveInit);
+            static_assert(not get<1>(p).wasCopyInit);
+        }
     }
 }
 
