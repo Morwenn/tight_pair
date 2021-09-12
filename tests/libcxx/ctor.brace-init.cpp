@@ -108,6 +108,5 @@ namespace
 
 TEST_CASE( "test constructor brace init" )
 {
-    CHECK( test() );
     static_assert(test());
 }
