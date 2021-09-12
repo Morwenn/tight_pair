@@ -140,6 +140,11 @@ namespace cruft
         // type warnings in MSVC
 
 #if defined(_IS_ASSIGNABLE_NOCHECK_SUPPORTED) && !defined(__CUDACC__)
+        template<typename To, typename From>
+        struct is_assignable_nocheck:
+            std::integral_constant<bool, __is_assignable_no_precondition_check(To, From)>
+        {};
+
         template<typename T>
         struct is_copy_assignable_nocheck:
             std::integral_constant<bool, __is_assignable_no_precondition_check(
@@ -156,6 +161,9 @@ namespace cruft
             )>
         {};
 #else
+        template<typename To, typename From>
+        using is_assignable_nocheck = std::is_assignable<To, From>;
+
         template<typename T>
         using is_copy_assignable_nocheck = std::is_copy_assignable<T>;
 
@@ -1234,7 +1242,8 @@ namespace cruft
                 typename U1,
                 typename U2,
                 std::enable_if_t<
-                    std::is_assignable_v<T1&, U1 const&> && std::is_assignable_v<T2&, U2 const&> &&
+                    detail::is_assignable_nocheck<T1&, U1 const&>::value &&
+                    detail::is_assignable_nocheck<T2&, U2 const&>::value &&
                     not std::is_same_v<tight_pair, tight_pair<U1, U2>>,
                     int
                 > = 0
@@ -1254,7 +1263,8 @@ namespace cruft
                 typename U1,
                 typename U2,
                 std::enable_if_t<
-                    std::is_assignable_v<T1&, U1> && std::is_assignable_v<T2&, U2> &&
+                    detail::is_assignable_nocheck<T1&, U1>::value &&
+                    detail::is_assignable_nocheck<T2&, U2>::value &&
                     not std::is_same_v<tight_pair, tight_pair<U1, U2>>,
                     int
                 > = 0
