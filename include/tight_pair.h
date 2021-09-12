@@ -1231,8 +1231,49 @@ namespace cruft
             }
 
             template<
+                typename U1,
+                typename U2,
+                std::enable_if_t<
+                    std::is_assignable_v<T1&, U1 const&> && std::is_assignable_v<T2&, U2 const&> &&
+                    not std::is_same_v<tight_pair, tight_pair<U1, U2>>,
+                    int
+                > = 0
+            >
+            constexpr auto operator=(tight_pair<U1, U2> const& other)
+                noexcept(noexcept(std::is_nothrow_assignable<T1&, U1 const&>::value &&
+                                  std::is_nothrow_assignable<T2&, U2 const&>::value))
+                -> tight_pair&
+            {
+                using std::get;
+                get<0>(*this) = other.template get<0>();
+                get<1>(*this) = other.template get<1>();
+                return *this;
+            }
+
+            template<
+                typename U1,
+                typename U2,
+                std::enable_if_t<
+                    std::is_assignable_v<T1&, U1> && std::is_assignable_v<T2&, U2> &&
+                    not std::is_same_v<tight_pair, tight_pair<U1, U2>>,
+                    int
+                > = 0
+            >
+            constexpr auto operator=(tight_pair<U1, U2>&& other)
+                noexcept(noexcept(std::is_nothrow_assignable<T1&, U1>::value &&
+                                  std::is_nothrow_assignable<T2&, U2>::value))
+                -> tight_pair&
+            {
+                using std::get;
+                get<0>(*this) = std::move(other.template get<0>());
+                get<1>(*this) = std::move(other.template get<1>());
+                return *this;
+            }
+
+            template<
                 typename Tuple,
                 typename = std::enable_if_t<
+                    // TODO: remove pair_like special case
                     check_pair_like<Tuple>::template enable_assign<Tuple>
                 >
             >
