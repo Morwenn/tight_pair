@@ -776,8 +776,26 @@ namespace cruft
                 tight_pair_element<1, T2>(pc, std::forward<Tuple2>(second_args))
             {}
 
+#ifdef _MSC_VER
+            constexpr auto operator=(tight_pair_storage const& other)
+                -> tight_pair_storage&
+            {
+                do_get<0>() = other.do_get<0>();
+                do_get<1>() = other.do_get<1>();
+                return *this;
+            }
+
+            constexpr auto operator=(tight_pair_storage&& other)
+                -> tight_pair_storage&
+            {
+                do_get<0>() = std::move(other.do_get<0>());
+                do_get<1>() = std::move(other.do_get<1>());
+                return *this;
+            }
+#else
             tight_pair_storage& operator=(tight_pair_storage const&) = default;
             tight_pair_storage& operator=(tight_pair_storage&&) = default;
+#endif
 
             ////////////////////////////////////////////////////////////
             // Element access
@@ -855,8 +873,26 @@ namespace cruft
                          std::make_from_tuple<T>(std::forward<Tuple2>(second_args))}
             {}
 
+#ifdef _MSC_VER
+            constexpr auto operator=(tight_pair_storage const& other)
+                -> tight_pair_storage&
+            {
+                do_get<0>() = other.do_get<0>();
+                do_get<1>() = other.do_get<1>();
+                return *this;
+            }
+
+            constexpr auto operator=(tight_pair_storage&& other)
+                -> tight_pair_storage&
+            {
+                do_get<0>() = std::move(other.do_get<0>());
+                do_get<1>() = std::move(other.do_get<1>());
+                return *this;
+            }
+#else
             tight_pair_storage& operator=(tight_pair_storage const&) = default;
             tight_pair_storage& operator=(tight_pair_storage&&) = default;
+#endif
 
             ////////////////////////////////////////////////////////////
             // Element access
@@ -919,8 +955,26 @@ namespace cruft
                          std::make_from_tuple<T>(std::forward<Tuple2>(second_args))}
             {}
 
+#ifdef _MSC_VER
+            constexpr auto operator=(tight_pair_storage const& other)
+                -> tight_pair_storage&
+            {
+                do_get<0>() = other.do_get<0>();
+                do_get<1>() = other.do_get<1>();
+                return *this;
+            }
+
+            constexpr auto operator=(tight_pair_storage&& other)
+                -> tight_pair_storage&
+            {
+                do_get<0>() = std::move(other.do_get<0>());
+                do_get<1>() = std::move(other.do_get<1>());
+                return *this;
+            }
+#else
             tight_pair_storage& operator=(tight_pair_storage const&) = default;
             tight_pair_storage& operator=(tight_pair_storage&&) = default;
+#endif
 
             ////////////////////////////////////////////////////////////
             // Element access
