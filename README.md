@@ -53,6 +53,10 @@ Now is the time to look at what actually makes this `tight_pair` different from 
   To bypass this potential bug without losing its compressing abilities, `cruft::tight_pair` has in-class `get`
   functions equivalent to those that can be found thanks to ADL.
 
+  Note: this issue was partially mitigated in C++20 by [P0961][P0961] which ensures that the compiler will only look
+  for a member function template, which avoid tripping on a non-template member `get()` like the one available with
+  smart pointers. That solution is however incomplete, and our own mitigation still solves potential issues.
+
 - Unlike `std::pair`, it doesn't have `first` and `second` members nor does it provide `first_type` or `second_type`
   type aliases. The members can only be accessed through the `get` function template, and the member types can only be
   retrieved through `std::tuple_element`. It was a choice to only provide a minimal tuple-like interface.
@@ -112,10 +116,14 @@ was published:
 * The versions of MinGW-w64 and AppleClang equivalent to the compilers mentioned above.
 * Clang is notably tested with both libstdc++ and libc++.
 
-The compilers listed above are the ones used by the CI pipeline, and the library is also tested
-with the most recent versions of those compilers on a regular basis. All the other compiler
-versions in-between are untested, but should also work. Feel free to open an issue if it isn't the
-case.
+The compilers listed above are the ones used by the CI pipeline, and the library is also tested with the most recent
+versions of those compilers on a regular basis. All the other compiler versions in-between are untested, but should
+also work. Feel free to open an issue if it isn't the case.
+
+There might still be compiler errors with some corner cases that the library doesn't try to work around. The known ones
+are documented in a small [knowledge base][known-errors] on the GitHub wiki.
+
+*WARNING: while the library works with MSVC, the codegen tends to be pretty poor.*
 
 ## Acknowledgements
 
@@ -147,10 +155,12 @@ this project when I didn't write it by myself:
   [ebco]: http://en.cppreference.com/w/cpp/language/ebo
   [godbolt]: https://godbolt.org/
   [hidden-friends]: https://www.justsoftwaresolutions.co.uk/cplusplus/hidden-friends.html
+  [known-errors]: https://github.com/Morwenn/tight_pair/wiki
   [LWG2510]: https://wg21.link/LWG2510
   [N1899]: http://www.open-std.org/jtc1/sc22/wg14/www/docs/n1899.pdf
   [no-unique-address]: https://en.cppreference.com/w/cpp/language/attributes/no_unique_address
   [P0463]: https://wg21.link/P0463
+  [P0961]: https://wg21.link/P0961
   [P1302]: https://wg21.link/P1302
   [P1951]: https://wg21.link/P1951
   [std-make-pair]: https://en.cppreference.com/w/cpp/utility/pair/make_pair
