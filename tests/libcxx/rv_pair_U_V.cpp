@@ -77,6 +77,19 @@ namespace
         ImplicitNothrowT(int x) noexcept: value(x) {}
         int value;
     };
+
+    struct NotCopyOrMoveConstructible
+    {
+        NotCopyOrMoveConstructible() = default;
+        NotCopyOrMoveConstructible(NotCopyOrMoveConstructible const&) = delete;
+        NotCopyOrMoveConstructible(NotCopyOrMoveConstructible&&) = delete;
+    };
+
+    struct NonCopyConstructible
+    {
+        NonCopyConstructible(NonCopyConstructible const&) = delete;
+        NonCopyConstructible(NonCopyConstructible&&) = default;
+    };
 }
 
 TEST_CASE( "rv pair U V" )
@@ -176,6 +189,41 @@ TEST_CASE( "rv pair U V" )
         test_pair_rv<ExplicitTypes::ConvertingType, ExplicitTypes::ConvertingType const&, true, false>();
         test_pair_rv<ExplicitTypes::ConvertingType, ExplicitTypes::ConvertingType&, true, false>();
         test_pair_rv<ExplicitTypes::ConvertingType, ExplicitTypes::ConvertingType&&, true, false>();
+    }
+    {
+        // When constructing a pair containing a reference, we only bind the
+        // reference, so it doesn't matter whether the type is or isn't
+        // copy/move constructible.
+        {
+            using P1 = cruft::tight_pair<NotCopyOrMoveConstructible&, long>;
+            using P2 = cruft::tight_pair<NotCopyOrMoveConstructible&, int>;
+            static_assert(std::is_constructible<P1, P2&&>::value);
+
+            NotCopyOrMoveConstructible obj;
+            P2 p2{obj, 3};
+            P1 p1(std::move(p2));
+            CHECK(&get<0>(p1) == &obj);
+            CHECK(&get<0>(p2) == &obj);
+        }
+        {
+            using P1 = cruft::tight_pair<NotCopyOrMoveConstructible&&, long>;
+            using P2 = cruft::tight_pair<NotCopyOrMoveConstructible&&, int>;
+            static_assert(std::is_constructible<P1, P2&&>::value);
+
+            NotCopyOrMoveConstructible obj;
+            P2 p2{std::move(obj), 3};
+            P1 p1(std::move(p2));
+            CHECK(&get<0>(p1) == &obj);
+            CHECK(&get<0>(p2) == &obj);
+        }
+    }
+    {
+        // Make sure we can't move-construct from a pair containing a reference
+        // if that type isn't copy-constructible (since otherwise we'd be stealing
+        // the object through the reference).
+        using P1 = cruft::tight_pair<NonCopyConstructible, long>;
+        using P2 = cruft::tight_pair<NonCopyConstructible&, int>;
+        static_assert(not std::is_constructible<P1, P2&&>::value);
     }
     { // explicit constexpr test
         constexpr cruft::tight_pair<int, int> p1(42, 43);

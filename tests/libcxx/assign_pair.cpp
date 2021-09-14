@@ -12,6 +12,7 @@
 //===----------------------------------------------------------------------===//
 
 #include <cassert>
+#include <memory>
 #include <type_traits>
 #include <utility>
 #include <catch2/catch.hpp>
@@ -62,11 +63,11 @@ namespace
         }
         {
             using P = cruft::tight_pair<int, ConstexprTestTypes::NonCopyable>;
-            static_assert(not std::is_copy_assignable<P>::value, "");
+            static_assert(not std::is_copy_assignable<P>::value);
         }
         {
             using P = cruft::tight_pair<CountAssign, ConstexprTestTypes::Copyable>;
-            static_assert(std::is_copy_assignable<P>::value, "");
+            static_assert(std::is_copy_assignable<P>::value);
             P p;
             P p2;
             p = p2;
@@ -77,6 +78,10 @@ namespace
         }
         {
             using P = cruft::tight_pair<int, ConstexprTestTypes::MoveAssignOnly>;
+            static_assert(not std::is_copy_assignable<P>::value);
+        }
+        {
+            using P = cruft::tight_pair<int, std::unique_ptr<int> >;
             static_assert(not std::is_copy_assignable<P>::value);
         }
         {
