@@ -1,4 +1,4 @@
-[![Latest Release](https://img.shields.io/badge/release-1.1.0-blue.svg)](https://github.com/Morwenn/tight_pair/releases/tag/1.1.0)
+[![Latest Release](https://img.shields.io/badge/release-1.2.0-blue.svg)](https://github.com/Morwenn/tight_pair/releases/tag/1.2.0)
 [![Code Coverage](https://codecov.io/gh/Morwenn/tight_pair/branch/master/graph/badge.svg)](https://codecov.io/gh/Morwenn/tight_pair)
 [![Pitchfork Layout](https://img.shields.io/badge/standard-PFL-orange.svg)](https://github.com/vector-of-bool/pitchfork)
 

@@ -10,7 +10,7 @@ required_conan_version = ">=1.33.0"
 
 class TightPairConan(ConanFile):
     name = "tight_pair"
-    version = "1.1.0"
+    version = "1.2.0"
     description = "Compressed pair for C++17"
     topics = "conan", "tight_pair", "compressed-pair", "data-structures"
     url = "https://github.com/Morwenn/tight_pair"
