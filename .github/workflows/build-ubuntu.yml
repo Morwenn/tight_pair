@@ -63,7 +63,7 @@ jobs:
           cmake -H${{github.event.repository.name}} -Bbuild \
                 -DCMAKE_CONFIGURATION_TYPES=${{matrix.config.build_type}} \
                 -DCMAKE_BUILD_TYPE=${{matrix.config.build_type}} \
-                -DSANITIZE=${{matrix.config.sanitize}} \
+                -DTIGHT_PAIR_SANITIZE=${{matrix.config.sanitize}} \
                 -DTIGHT_PAIR_USE_VALGRIND=${{matrix.config.valgrind}} \
                 -G"Unix Makefiles"
 

@@ -6,8 +6,8 @@ include(FetchContent)
 ########################################
 # Test suite options
 
-set(SANITIZE "" CACHE STRING "Comma-separated list of options to pass to -fsanitize")
 option(TIGHT_PAIR_ENABLE_COVERAGE "Whether to produce code coverage" OFF)
+set(TIGHT_PAIR_SANITIZE "" CACHE STRING "Comma-separated list of options to pass to -fsanitize")
 option(TIGHT_PAIR_USE_VALGRIND "Whether to run the tests with Valgrind" OFF)
 
 # Apparently ENABLE_COVERAGE is needed either way
@@ -127,13 +127,13 @@ if (UNIX AND NOT APPLE)
 endif()
 
 # Optionally enable sanitizers
-if (UNIX AND SANITIZE)
-    target_compile_options(tight_pair-testsuite PRIVATE -fsanitize=${SANITIZE})
+if (UNIX AND TIGHT_PAIR_SANITIZE)
+    target_compile_options(tight_pair-testsuite PRIVATE -fsanitize=${TIGHT_PAIR_SANITIZE})
     set_property(
         TARGET
             tight_pair-testsuite
         APPEND_STRING PROPERTY LINK_FLAGS
-            " -fsanitize=${SANITIZE} -fno-sanitize-recover=all"
+            " -fsanitize=${TIGHT_PAIR_SANITIZE} -fno-sanitize-recover=all"
     )
 endif()
 
