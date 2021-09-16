@@ -161,7 +161,7 @@ this project when I didn't write it by myself:
   [no-unique-address]: https://en.cppreference.com/w/cpp/language/attributes/no_unique_address
   [P0463]: https://wg21.link/P0463
   [P0961]: https://wg21.link/P0961
-  [P1302]: https://wg21.link/P1302
+  [P1032]: https://wg21.link/P1032
   [P1951]: https://wg21.link/P1951
   [std-make-pair]: https://en.cppreference.com/w/cpp/utility/pair/make_pair
   [std-pair]: https://en.cppreference.com/w/cpp/utility/pair
